@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>発行QR / Staff</title>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Helvetica Neue",Arial,sans-serif; background:#0e0e10; color:#eee;
+       display:flex; min-height:100vh; align-items:center; justify-content:center; padding:18px;}
+  .panel{width:100%; max-width:380px; background:#fff; color:#1a1a1a; border-radius:20px; padding:22px; text-align:center;
+         box-shadow:0 18px 50px rgba(0,0,0,.5); border:2px solid #e8631c;}
+  h1{font-size:18px; margin:2px 0 2px;}
+  .sub{font-size:12px; color:#888; margin-bottom:16px;}
+  #qr{display:flex; justify-content:center; align-items:center; min-height:280px;}
+  #qr img, #qr canvas{width:280px !important; height:280px !important;}
+  .ts{font-size:12px; color:#999; margin-top:12px;}
+  .btn{margin-top:14px; width:100%; padding:14px; border:none; border-radius:12px; font-size:15px; font-weight:800;
+       color:#fff; background:linear-gradient(135deg,#e8631c,#f5933b);}
+  .hint{font-size:11px; color:#aaa; margin-top:12px; line-height:1.5;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div class="panel">
+  <h1>発行QR（スタッフ用）</h1>
+  <div class="sub">優勝者にこのQRを読み取ってもらってください</div>
+  <div id="qr"></div>
+  <div class="ts" id="ts">準備中...</div>
+  <button class="btn" onclick="refresh()">新しいQRを表示</button>
+  <p class="hint">このQRは1回読み込むか数分で自動的に新しくなります。<br>写真を撮って回されても無効になります。</p>
+</div>
+<script src="api.js"></script>
+<script>
+  function refresh(){
+    document.getElementById('ts').textContent = '更新中...';
+    jsonpRetry({ api:'newsession' }).then(function(res){
+      if(!res || !res.ok || !res.formUrl){ document.getElementById('ts').textContent='エラー: 再試行してください'; return; }
+      var box=document.getElementById('qr'); box.innerHTML='';
+      new QRCode(box, { text: res.formUrl, width:280, height:280, correctLevel: QRCode.CorrectLevel.M });
+      document.getElementById('ts').textContent = '発行QR更新: ' + new Date().toLocaleTimeString();
+    }).catch(function(){ document.getElementById('ts').textContent='通信エラー: 再試行してください'; });
+  }
+  refresh();
+  setInterval(refresh, 4*60*1000);
+</script>
+</body>
+</html>

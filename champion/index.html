@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>CHAMPION TICKET</title>
+<style>
+  :root{ --gold:#e8631c; --gold2:#f7b45a; --ink:#1a1a1a; --paper:#fff8f1; --red:#dd4814; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0; font-family:"Helvetica Neue",Arial,sans-serif; background:#0e0e10; color:var(--ink);
+       display:flex; min-height:100vh; align-items:center; justify-content:center; padding:18px;}
+  .card{width:100%; max-width:400px; background:var(--paper); border-radius:22px; overflow:hidden;
+        box-shadow:0 18px 50px rgba(0,0,0,.5); border:2px solid var(--gold);}
+  .head{background:#fff; text-align:center; padding:20px 16px 14px;}
+  .logo{max-width:70%; height:auto; margin:0 auto; display:block;}
+  .jp{color:#888; font-weight:600;}
+  .body{padding:22px 22px 26px;}
+  h1{font-size:20px; text-align:center; margin:4px 0 2px;}
+  .lead{font-size:14px; line-height:1.6; text-align:center; color:#444; margin:6px 0 18px;}
+  label{display:block; font-size:12px; font-weight:700; color:#666; margin:0 0 6px 2px;}
+  input[type=email]{width:100%; padding:14px; font-size:16px; border:2px solid #ddd; border-radius:12px; outline:none;}
+  input[type=email]:focus{border-color:var(--gold);}
+  .btn{width:100%; margin-top:16px; padding:16px; border:none; border-radius:14px; font-size:17px; font-weight:800;
+       letter-spacing:1px; color:#fff; background:linear-gradient(135deg,#e8631c,#f5933b); box-shadow:0 6px 16px rgba(232,99,28,.3);}
+  .btn[disabled]{background:#cfcfcf; box-shadow:none;}
+  .btnjp{display:block; font-size:12px; font-weight:600; margin-top:3px; opacity:.9;}
+  .msg{text-align:center; font-size:13px; min-height:18px; margin-top:12px; line-height:1.5;}
+  .msg.err{color:var(--red);}
+  .msg.ok{color:#1c7a32; font-weight:700;}
+  .note{text-align:center; font-size:11px; color:#999; margin-top:14px; line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <img class="logo" src="champion_logo.jpg" alt="KURUKURU WANKO">
+  </div>
+  <div class="body">
+    <h1>Get your CHAMPION TICKET</h1>
+    <p class="lead">Enter your email to receive your prize ticket.<br>
+      <span class="jp">メールアドレスを入力すると、チケットをお送りします。</span></p>
+    <label for="email">Email address / メールアドレス</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
+    <button class="btn" id="btn" onclick="submit()">EMAIL MY TICKET<span class="btnjp">チケットをメールで受け取る</span></button>
+    <div class="msg" id="msg"></div>
+    <p class="note">We'll email your ticket and also open it on screen now.<br>
+      <span class="jp">チケットはメールで届き、この画面でもすぐ開きます。</span></p>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+  var SESSION = new URLSearchParams(location.search).get('s') || '';
+  function submit(){
+    var email = document.getElementById('email').value.trim();
+    var msg = document.getElementById('msg');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      msg.className='msg err'; msg.textContent='Please enter a valid email. / メールアドレスを正しく入力してください。'; return;
+    }
+    var btn=document.getElementById('btn'); btn.disabled=true;
+    msg.className='msg'; msg.textContent='Sending... / 送信中...';
+    var params = { api:'issue', email: email };
+    if(SESSION) params.s = SESSION;
+    jsonpRetry(params).then(function(res){
+      if(res && res.ok){
+        msg.className='msg ok'; msg.textContent='✅ Sent! Opening your ticket... / 送信しました。チケットを開きます...';
+        setTimeout(function(){ location.href = res.ticketUrl; }, 1200);
+      } else {
+        btn.disabled=false; msg.className='msg err'; msg.textContent=(res&&res.msg)||'Error. Please try again.';
+      }
+    }).catch(function(){
+      btn.disabled=false; msg.className='msg err'; msg.textContent='Network error. Please try again. / 通信エラー。もう一度お試しください。';
+    });
+  }
+  document.getElementById('email').addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+</script>
+</body>
+</html>

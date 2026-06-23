@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>CHAMPION TICKET</title>
+<style>
+  :root{ --gold:#e8631c; --gold2:#f7b45a; --ink:#1a1a1a; --paper:#fff8f1; --red:#dd4814; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0; font-family:"Helvetica Neue",Arial,sans-serif; background:#0e0e10; color:var(--ink);
+       display:flex; min-height:100vh; align-items:center; justify-content:center; padding:18px;}
+  .ticket{width:100%; max-width:400px; background:var(--paper); border-radius:22px; overflow:hidden;
+          box-shadow:0 18px 50px rgba(0,0,0,.5); border:2px solid var(--gold);}
+  .head{background:#fff; text-align:center; padding:16px 16px 0;}
+  .logo{max-width:74%; height:auto; margin:2px auto 12px; display:block;}
+  .hero{width:calc(100% + 4px); margin:0 -2px -2px; display:block;}
+  .body{padding:22px 22px 10px;}
+  .desc{font-size:15px; line-height:1.6; text-align:center; color:#333;}
+  .desc b{color:var(--red);}
+  .free{display:block; text-align:center; font-size:40px; font-weight:900; color:var(--red); letter-spacing:2px; margin:12px 0 2px;}
+  .freesub{display:block; text-align:center; font-size:13px; font-weight:700; color:#444; margin-bottom:6px;}
+  .cond{display:block; text-align:center; margin:14px 0 2px; padding:11px 12px; background:#fff3e3; border:1px solid #f4b06a;
+        border-radius:10px; font-size:13px; font-weight:600; color:#9a4710; line-height:1.55;}
+  .cond b{color:var(--red);}
+  .cond .jp{display:block; margin-top:4px; font-size:12px; color:#b3631a; font-weight:600;}
+  .perf{border-top:2px dashed #d9cdb0; margin:18px -22px 0; position:relative;}
+  .perf:before,.perf:after{content:""; position:absolute; top:-12px; width:24px; height:24px; background:#0e0e10; border-radius:50%;}
+  .perf:before{left:-12px;} .perf:after{right:-12px;}
+  .meta{padding:18px 0 4px; text-align:center; font-size:12px; color:#777;}
+  .meta .exp{font-size:13px; color:#444; font-weight:600;}
+  .badge{display:inline-block; padding:5px 14px; border-radius:30px; font-size:12px; font-weight:700; letter-spacing:1px; margin-top:8px;}
+  .badge.active{background:#e7f6e9; color:#1c7a32; border:1px solid #8fd49c;}
+  .badge.used{background:#eee; color:#888; border:1px solid #ccc;}
+  .badge.expired{background:#fdeaea; color:#b3201f; border:1px solid #e6a3a3;}
+  .foot{padding:6px 22px 24px;}
+  .usebtn{width:100%; padding:16px; border:none; border-radius:14px; font-size:17px; font-weight:800; letter-spacing:1px;
+          color:#fff; background:linear-gradient(135deg,#e8631c,#f5933b); box-shadow:0 6px 16px rgba(232,99,28,.3); cursor:pointer;}
+  .usebtn[disabled]{background:#cfcfcf; box-shadow:none; cursor:default;}
+  .btnjp{display:block; font-size:12px; font-weight:600; letter-spacing:1px; margin-top:3px; opacity:.9;}
+  .note{text-align:center; font-size:11px; color:#999; margin-top:12px; line-height:1.5;}
+  .jp{color:#999; font-weight:600;}
+  .badge .jp{color:inherit; font-weight:700;}
+  .center{text-align:center; padding:40px 22px; color:#777; font-size:14px;}
+  .hidden{display:none;}
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:flex-end; justify-content:center; z-index:10;}
+  .overlay.show{display:flex;}
+  .sheet{width:100%; max-width:400px; background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 26px;}
+  .sheet h3{margin:4px 0 4px; text-align:center; font-size:16px;}
+  .sheet p{margin:0 0 14px; text-align:center; font-size:12px; color:#888;}
+  .pindisp{display:flex; justify-content:center; gap:12px; margin:6px 0 16px;}
+  .dot{width:16px; height:16px; border-radius:50%; border:2px solid #bbb;}
+  .dot.on{background:#1a1a1a; border-color:#1a1a1a;}
+  .pad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .key{padding:16px 0; font-size:22px; font-weight:700; border:none; border-radius:12px; background:#f1f1f3; cursor:pointer;}
+  .key.fn{font-size:14px; background:#fff;}
+  .cancel{display:block; width:100%; margin-top:14px; padding:12px; background:none; border:none; color:#888; font-size:14px; cursor:pointer;}
+  .sheet h3 .jp{font-size:13px;}
+  .err{color:var(--red); text-align:center; font-size:13px; min-height:18px; margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="ticket">
+  <div class="head">
+    <img class="logo" src="champion_logo.jpg" alt="KURUKURU WANKO">
+    <img class="hero" src="champion_hero.jpg" alt="CHAMPION TICKET">
+  </div>
+
+  <div id="loading" class="center">Loading your ticket... / チケットを読み込み中...</div>
+
+  <div id="invalid" class="center hidden" style="color:#b3201f; font-weight:700;">
+    This ticket is not valid.<br><span style="color:#888; font-weight:500; font-size:12px;">無効なチケットです。</span>
+  </div>
+
+  <div id="main" class="hidden">
+    <div class="body">
+      <p class="desc">
+        You won — you're the <b>CHAMPION!</b> 🏆<br>
+        Your prize: your <b>next DACHI BATTLE!</b> is
+      </p>
+      <span class="free">FREE!</span>
+      <span class="freesub">Battle your buddies again, on us! ⚔️</span>
+      <span class="cond">⚠️ This ticket works ONLY during a <b>DACHI BATTLE!</b><br>A DACHI BATTLE! starts automatically when <b>3 or more</b> friends dine together.<span class="jp">※「ダチバトル」は3名様以上のご来店で自動発生。このチケットはダチバトルでのみ使えます。</span></span>
+      <div class="perf"></div>
+      <div class="meta">
+        <div class="exp" id="exp">Valid until —</div>
+        <div id="tid">Ticket ID: —</div>
+        <span class="badge active" id="badge">● ACTIVE <span class="jp">有効</span></span>
+      </div>
+    </div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h3>Staff PIN <span class="jp">スタッフPIN</span></h3>
+    <p>Staff: please enter the 4-digit PIN to redeem.<br><span class="jp">スタッフの方：使用するには4桁のPINを入力してください。</span></p>
+    <div class="pindisp" id="pindisp"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="err" id="err"></div>
+    <div class="pad">
+      <button class="key" onclick="tap('1')">1</button><button class="key" onclick="tap('2')">2</button><button class="key" onclick="tap('3')">3</button>
+      <button class="key" onclick="tap('4')">4</button><button class="key" onclick="tap('5')">5</button><button class="key" onclick="tap('6')">6</button>
+      <button class="key" onclick="tap('7')">7</button><button class="key" onclick="tap('8')">8</button><button class="key" onclick="tap('9')">9</button>
+      <button class="key fn" onclick="del()">⌫</button><button class="key" onclick="tap('0')">0</button><button class="key fn" onclick="submitPin()">OK</button>
+    </div>
+    <button class="cancel" onclick="closePin()">Cancel</button>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+  var qp = new URLSearchParams(location.search);
+  var ID = qp.get('id') || '', TOKEN = qp.get('token') || '';
+
+  function show(id){ document.getElementById(id).classList.remove('hidden'); }
+  function hide(id){ document.getElementById(id).classList.add('hidden'); }
+
+  function render(res){
+    hide('loading');
+    if(!res || !res.ok){ show('invalid'); return; }
+    show('main');
+    document.getElementById('exp').textContent = 'Valid until ' + res.expiresEn;
+    document.getElementById('tid').textContent = 'Ticket ID: ' + res.id;
+    var badge = document.getElementById('badge');
+    var foot = document.getElementById('foot');
+    if(res.status === '使用済み'){
+      badge.className='badge used'; badge.innerHTML='● USED <span class="jp">使用済み</span>&nbsp;'+(res.usedAt||'');
+      foot.innerHTML='<button class="usebtn" disabled>ALREADY USED<span class="btnjp">使用済み</span></button>';
+    } else if(res.status === '期限切れ'){
+      badge.className='badge expired'; badge.innerHTML='● EXPIRED <span class="jp">期限切れ</span>';
+      foot.innerHTML='<button class="usebtn" disabled>EXPIRED<span class="btnjp">期限切れ</span></button>';
+    } else {
+      badge.className='badge active'; badge.innerHTML='● ACTIVE <span class="jp">有効</span>';
+      foot.innerHTML='<button class="usebtn" id="useBtn" onclick="openPin()">USE THIS TICKET<span class="btnjp">このチケットを使う</span></button>'
+        + '<p class="note">★ Staff only ★ <span class="jp">スタッフ専用</span><br>A staff member will enter the PIN to redeem this ticket.<br><span class="jp">スタッフがPINを入力して使用処理を行います。</span><br>Tapping alone does NOT use the ticket. <span class="jp">タップだけでは使用済みになりません。</span></p>';
+    }
+  }
+
+  function load(){
+    if(!ID || !TOKEN){ hide('loading'); show('invalid'); return; }
+    jsonpRetry({ api:'get', id:ID, token:TOKEN }).then(render).catch(function(){
+      hide('loading');
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('loading').innerHTML = 'Network error. <a href="javascript:location.reload()">Reload / 再読み込み</a>';
+    });
+  }
+
+  // PIN pad
+  var pin='';
+  function openPin(){ pin=''; renderPin(); document.getElementById('err').textContent=''; document.getElementById('overlay').classList.add('show'); }
+  function closePin(){ document.getElementById('overlay').classList.remove('show'); }
+  function tap(n){ if(pin.length<4){ pin+=n; renderPin(); if(pin.length===4) submitPin(); } }
+  function del(){ pin=pin.slice(0,-1); renderPin(); }
+  function renderPin(){ var d=document.querySelectorAll('#pindisp .dot'); for(var i=0;i<d.length;i++){ d[i].className='dot'+(i<pin.length?' on':''); } }
+  function submitPin(){
+    if(pin.length<4){ document.getElementById('err').textContent='Enter 4 digits.'; return; }
+    document.getElementById('err').textContent='...';
+    jsonpRetry({ api:'redeem', id:ID, token:TOKEN, pin:pin }).then(function(res){
+      if(res && res.ok){
+        closePin();
+        load(); // 再取得して USED 表示に更新
+      } else {
+        document.getElementById('err').textContent = (res&&res.msg) ? res.msg : 'Could not redeem.';
+        pin=''; renderPin();
+      }
+    }).catch(function(){ document.getElementById('err').textContent='Network error. Try again.'; pin=''; renderPin(); });
+  }
+
+  load();
+</script>
+</body>
+</html>

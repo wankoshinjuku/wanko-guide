@@ -233,6 +233,7 @@ select{width:100%;margin-top:4px;border:1.5px solid var(--line);border-radius:12
 <div class="toast" id="toast"></div>
 
 <script src="config.js"></script>
+<script src="fallback.js"></script>
 <script>
 // ---------- 店舗設定の読み込み（?store=xxx） ----------
 (function(){
@@ -254,7 +255,7 @@ var T = {
   next1:'AIで口コミ文案を作る',needRate:'まず★を選んでください',skipAi:'AIを使わずに自分で書く →',
   loading:'あなたの体験をもとに文案を作成中…',draftH:'口コミ文案',draftSub:'自由に書き換えてOK。ご自分の言葉に直すとより伝わります',
   titleLabel:'タイトル（Tripadvisor用）',bodyLabel:'本文',regen:'↻ 別の表現で作り直す',back:'← 選択に戻る',next2:'{p}に投稿する',
-  fallback:'AIにつながりませんでした。「作り直す」でもう一度試すか、ご自分で書いてください。',
+  fallback:'AIが混み合っているため、簡易版の文案です。ご自分の言葉で自由に書き足してください。',
   platQ:'投稿画面を開きました',platSub:'本文はコピー済みです。下の手順で貼り付けてください',gDesc:'Googleマップの口コミ',tDesc:'世界最大の旅行口コミサイト',
   next3:'もう一度コピーして{p}を開く',pickPlat:'投稿先を選んでください',alt:'Googleに投稿したい方はこちら',altT:'Tripadvisorに投稿したい方はこちら',copyTitle:'タイトルをコピー',back2:'← 文案に戻る',
   howG:['★をタップして評価を選びます','入力欄を長押しして「ペースト」で貼り付け、投稿します'],
@@ -270,7 +271,7 @@ var T = {
   next1:'Create a draft with AI',needRate:'Please pick a star rating first',skipAi:'Write it myself without AI →',
   loading:'Writing a draft based on your visit…',draftH:'Your review draft',draftSub:'Edit freely — putting it in your own words makes it even better',
   titleLabel:'Title (for Tripadvisor)',bodyLabel:'Review',regen:'↻ Try different wording',back:'← Back to choices',next2:'Post on {p}',
-  fallback:'We couldn\'t reach the AI. Tap "Try different wording" to try again, or write it yourself.',
+  fallback:'The AI is busy right now, so this is a simple draft. Please add your own words.',
   platQ:'The review page is open',platSub:'Your review is already copied. Follow the steps below to paste it',gDesc:'Reviews on Google Maps',tDesc:'The world\'s largest travel review site',
   next3:'Copy again & open {p}',pickPlat:'Choose where to post',alt:'Prefer Google? Post there instead',altT:'Prefer Tripadvisor? Post there instead',copyTitle:'Copy title',back2:'← Back to draft',
   howG:['Tap the stars to rate','Long-press the text box, paste, and post'],
@@ -286,7 +287,7 @@ var T = {
   next1:'用AI生成评价文案',needRate:'请先选择星级',skipAi:'不用AI，自己写 →',
   loading:'正在根据您的体验生成文案…',draftH:'评价文案',draftSub:'可以自由修改，用自己的话写更能打动人',
   titleLabel:'标题（Tripadvisor用）',bodyLabel:'正文',regen:'↻ 换一种说法',back:'← 返回选择',next2:'发布到{p}',
-  fallback:'暂时无法连接AI。请点击“换一种说法”重试，或自己填写。',
+  fallback:'AI目前繁忙，以下为简易文案，请用自己的话补充。',
   platQ:'已打开评价页面',platSub:'正文已复制，请按以下步骤粘贴',gDesc:'Google地图评价',tDesc:'全球最大的旅游点评网站',
   next3:'再次复制并打开{p}',pickPlat:'请选择发布平台',alt:'想发布到Google？点这里',altT:'想发布到Tripadvisor？点这里',copyTitle:'复制标题',back2:'← 返回文案',
   howG:['点击星星选择评分','长按输入框粘贴，然后发布'],
@@ -302,7 +303,7 @@ var T = {
   next1:'用AI產生評論文案',needRate:'請先選擇星等',skipAi:'不用AI，自己寫 →',
   loading:'正在根據您的體驗產生文案…',draftH:'評論文案',draftSub:'可以自由修改，用自己的話寫更能打動人',
   titleLabel:'標題（Tripadvisor用）',bodyLabel:'內文',regen:'↻ 換一種說法',back:'← 返回選擇',next2:'發布到{p}',
-  fallback:'暫時無法連線AI。請點「換一種說法」重試，或自己填寫。',
+  fallback:'AI目前忙碌中，以下為簡易文案，請用自己的話補充。',
   platQ:'已開啟評論頁面',platSub:'內文已複製，請依以下步驟貼上',gDesc:'Google地圖評論',tDesc:'全球最大的旅遊評論網站',
   next3:'再次複製並開啟{p}',pickPlat:'請選擇發布平台',alt:'想發布到Google？點這裡',altT:'想發布到Tripadvisor？點這裡',copyTitle:'複製標題',back2:'← 返回文案',
   howG:['點擊星星選擇評分','長按輸入框貼上，然後發布'],
@@ -318,7 +319,7 @@ var T = {
   next1:'AI로 리뷰 초안 만들기',needRate:'먼저 별점을 선택해 주세요',skipAi:'AI 없이 직접 쓰기 →',
   loading:'체험을 바탕으로 초안을 작성 중…',draftH:'리뷰 초안',draftSub:'자유롭게 고쳐 쓰세요. 내 말로 바꾸면 더 잘 전달돼요',
   titleLabel:'제목 (Tripadvisor용)',bodyLabel:'본문',regen:'↻ 다른 표현으로 다시 만들기',back:'← 선택으로 돌아가기',next2:'{p}에 게시하기',
-  fallback:'AI에 연결하지 못했어요. "다시 만들기"로 다시 시도하거나 직접 써 주세요.',
+  fallback:'AI가 혼잡해서 간단한 초안을 표시합니다. 직접 자유롭게 덧붙여 주세요.',
   platQ:'리뷰 페이지를 열었어요',platSub:'본문은 이미 복사됐어요. 아래 순서대로 붙여넣으세요',gDesc:'Google 지도 리뷰',tDesc:'세계 최대 여행 리뷰 사이트',
   next3:'다시 복사하고 {p} 열기',pickPlat:'게시할 곳을 선택해 주세요',alt:'Google에 게시하고 싶다면 여기',altT:'Tripadvisor에 게시하고 싶다면 여기',copyTitle:'제목 복사',back2:'← 초안으로 돌아가기',
   howG:['별을 탭해 평점을 선택합니다','입력란을 길게 눌러 붙여넣기 후 게시합니다'],
@@ -457,11 +458,17 @@ function generate(){
     $('draftTitle').value=title||''; $('draft').value=body||'';
     $('loadingCard').hidden=true; $('draftCard').hidden=false; countDraft(); updateCta();
   };
-  if (!window.API_URL){ done('','',true); return; }
+  var local = function(){
+    var f = window.buildLocalDraft({ lang:st.out, rating:st.rating, bowls:(S.counter&&S.counter.enabled)?st.bowls:0, who:st.who,
+      likes: allItems().filter(function(it){ return st.sel[it.id]; }), dislikes: S.honest.items.filter(function(it){ return st.honest[it.id]; }),
+      comment: $('comment').value.trim().slice(0,300) }, S);
+    done(f.title, f.body, true);
+  };
+  if (!window.API_URL){ local(); return; }
   jsonp(payload, 70000).then(function(r){
     if (r && r.ok && r.review) done(r.title, r.review, false);
-    else done('','',true);
-  }).catch(function(){ done('','',true); });
+    else local();
+  }).catch(local);
 }
 
 function jsonp(params, ms){

@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Review Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#C8201A; --primary-dark:#9E1612; --accent:#F3B61F;
+  --bg:#FFF7EC; --card:#FFFFFF; --ink:#2A1C14; --muted:#7A685B; --line:#EEDFCC;
+  --chip:#FFF; --chip-on:#FFF0DF; --shadow:0 6px 20px rgba(120,60,20,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","PingFang SC","Apple SD Gothic Neo",sans-serif;font-size:16px;line-height:1.55}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:540px;margin:0 auto;padding:0 16px 120px}
+
+/* header */
+.top{background:var(--primary);color:#fff;padding:14px 16px 46px;position:relative;overflow:hidden}
+.top::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-40px;height:80px;background:var(--bg);border-radius:50% 50% 0 0}
+.top-in{max-width:540px;margin:0 auto;position:relative;z-index:1}
+.langs{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.langs button{border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;border-radius:99px;padding:3px 10px;font-size:12px}
+.langs button.on{background:#fff;color:var(--primary);border-color:#fff;font-weight:700}
+.brand{display:flex;flex-direction:column;align-items:center;margin-top:12px;text-align:center}
+.logo{background:#fff;border-radius:18px;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.logo img{display:block;height:46px;width:auto}
+.brand h1{font-size:19px;margin:12px 0 2px;font-weight:800;letter-spacing:.02em}
+.brand p{margin:0;font-size:13px;opacity:.9}
+
+/* steps */
+.steps{display:flex;gap:6px;margin:-26px 0 16px;position:relative;z-index:2}
+.steps div{flex:1;background:#fff;border-radius:12px;padding:8px 4px;text-align:center;font-size:12px;color:var(--muted);box-shadow:var(--shadow)}
+.steps b{display:block;font-size:15px;color:var(--line)}
+.steps .on{color:var(--ink);font-weight:700}.steps .on b{color:var(--primary)}
+.steps .done b{color:var(--accent)}
+
+.card{background:var(--card);border-radius:20px;padding:18px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin:0 0 2px;font-weight:800}
+.card .sub{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+
+/* stars */
+.stars{display:flex;justify-content:center;gap:6px}
+.stars button{border:0;background:none;padding:2px;font-size:42px;line-height:1;color:#E6D8C6;transition:transform .12s}
+.stars button.on{color:var(--accent)}
+.stars button:active{transform:scale(1.2)}
+.rate-label{text-align:center;font-weight:700;min-height:24px;margin-top:6px;color:var(--primary)}
+
+/* counter */
+.counter{display:flex;align-items:center;justify-content:center;gap:14px}
+.counter .pm{width:48px;height:48px;border-radius:50%;border:2px solid var(--line);background:#fff;font-size:24px;font-weight:800;color:var(--primary)}
+.counter .num{min-width:120px;text-align:center}
+.counter .num input{width:110px;border:0;border-bottom:2px dashed var(--line);font:inherit;font-size:40px;font-weight:800;text-align:center;color:var(--ink);background:transparent;padding:0}
+.counter .num span{font-size:14px;color:var(--muted)}
+.bowls{display:flex;flex-direction:column-reverse;align-items:center;height:72px;justify-content:flex-start;gap:0}
+.bowl{width:34px;height:7px;background:var(--primary);border-radius:0 0 18px 18px;margin-top:-1px;box-shadow:inset 0 2px 0 rgba(255,255,255,.35)}
+.bowl:nth-child(even){background:var(--primary-dark)}
+.quick{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.quick button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 12px;font-size:13px}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--chip);border-radius:14px;padding:8px 12px;font-size:14px;text-align:left;transition:all .12s}
+.chip.on{background:var(--chip-on);border-color:var(--primary);color:var(--primary-dark);font-weight:700}
+.chip.on::after{content:"✓";font-weight:800}
+.chips.big .chip{flex:1 1 calc(50% - 8px);padding:12px}
+.cat{margin-top:14px}
+.cat h3{font-size:13px;color:var(--muted);margin:0 0 6px;font-weight:700}
+details summary{list-style:none;cursor:pointer;font-weight:700;color:var(--primary);font-size:14px;padding:4px 0}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"＋ "}
+details[open] summary::before{content:"− "}
+.honest .chip.on{border-color:#6B7A8F;background:#EEF2F7;color:#33415A}
+
+textarea{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px;font:inherit;font-size:15px;resize:vertical;background:#FFFCF7;color:var(--ink)}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.count{text-align:right;font-size:12px;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>label{flex:1 1 200px;font-size:13px;color:var(--muted);font-weight:700}
+select{width:100%;margin-top:4px;border:1.5px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}
+
+/* buttons */
+.cta{display:block;width:100%;border:0;border-radius:16px;padding:16px;font-size:17px;font-weight:800;background:var(--primary);color:#fff;box-shadow:0 6px 0 var(--primary-dark);transition:transform .08s}
+.cta:active{transform:translateY(3px);box-shadow:0 3px 0 var(--primary-dark)}
+.cta:disabled{background:#D9CBBB;box-shadow:0 6px 0 #C2B19E;cursor:not-allowed}
+.ghost{display:block;width:100%;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px;font-weight:700;font-size:15px;margin-top:10px}
+.hint{text-align:center;font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}
+.bar .in{max-width:508px;margin:0 auto}
+
+/* draft */
+.title-in{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;font-weight:700;background:#FFFCF7;margin-bottom:8px;color:var(--ink)}
+.small-label{font-size:12px;color:var(--muted);font-weight:700;margin:0 0 4px}
+.loading{text-align:center;padding:36px 0}
+.spin{display:inline-block;font-size:44px;animation:spin 1.1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note{background:#FFF3D6;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#6A4B10;margin-top:10px}
+
+/* platforms */
+.plats{display:grid;gap:10px}
+.plat{display:flex;align-items:center;gap:12px;border:2px solid var(--line);border-radius:16px;padding:14px;background:#fff;text-align:left}
+.plat.on{border-color:var(--primary);background:var(--chip-on)}
+.plat .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;flex:none}
+.plat .ic.g{background:#fff;border:1px solid var(--line);color:#4285F4}
+.plat .ic.t{background:#34E0A1;color:#000}
+.plat b{display:block}
+.plat small{color:var(--muted)}
+.howto{font-size:13px;color:var(--muted);padding-left:18px;margin:12px 0 0}
+.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;transition:transform .25s;z-index:20;max-width:90%;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.foot{text-align:center;font-size:11.5px;color:var(--muted);margin-top:18px;padding:0 8px}
+.direct{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.direct a{font-size:12px;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="langs" id="langs"></div>
+    <div class="brand">
+      <div class="logo"><img id="logo" alt=""></div>
+      <h1 id="storeName"></h1>
+      <p data-t="tagline"></p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="steps" id="steps">
+    <div data-s="1"><b>1</b><span data-t="s1"></span></div>
+    <div data-s="2"><b>2</b><span data-t="s2"></span></div>
+    <div data-s="3"><b>3</b><span data-t="s3"></span></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <section id="step1">
+    <div class="card">
+      <h2 data-t="rateQ"></h2>
+      <p class="sub" data-t="rateSub"></p>
+      <div class="stars" id="stars"></div>
+      <div class="rate-label" id="rateLabel"></div>
+    </div>
+
+    <div class="card" id="counterCard">
+      <h2 id="counterTitle"></h2>
+      <p class="sub" data-t="optional"></p>
+      <div class="counter">
+        <button class="pm" id="minus" aria-label="-">−</button>
+        <div class="num"><input id="bowlsIn" type="number" inputmode="numeric" min="0"><br><span id="unit"></span></div>
+        <button class="pm" id="plus" aria-label="+">＋</button>
+        <div class="bowls" id="bowlStack" aria-hidden="true"></div>
+      </div>
+      <div class="quick" id="quick"></div>
+    </div>
+
+    <div class="card">
+      <h2 data-t="whoQ"></h2>
+      <p class="sub" data-t="optional"></p>
+      <div class="chips" id="who"></div>
+    </div>
+
+    <div class="card">
+      <h2 data-t="hiQ"></h2>
+      <p class="sub" data-t="hiSub"></p>
+      <div class="chips big" id="highlights"></div>
+      <details id="moreBox">
+        <summary data-t="more"></summary>
+        <div id="cats"></div>
+      </details>
+    </div>
+
+    <div class="card honest">
+      <h2 id="honestTitle"></h2>
+      <p class="sub" data-t="honestSub"></p>
+      <div class="chips" id="honest"></div>
+    </div>
+
+    <div class="card">
+      <h2 data-t="commentQ"></h2>
+      <p class="sub" data-t="commentSub"></p>
+      <textarea id="comment" rows="3" maxlength="300"></textarea>
+      <div class="count"><span id="cCount">0</span>/300</div>
+      <div class="row" style="margin-top:8px">
+        <label><span data-t="outLang"></span><select id="outLang"></select></label>
+        <label><span data-t="tone"></span><select id="tone"></select></label>
+      </div>
+    </div>
+    <div class="direct"><a href="#" id="skipAi" data-t="skipAi"></a></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="step2" hidden>
+    <div class="card" id="loadingCard">
+      <div class="loading"><div class="spin">🍜</div><p data-t="loading"></p></div>
+    </div>
+    <div class="card" id="draftCard" hidden>
+      <h2 data-t="draftH"></h2>
+      <p class="sub" data-t="draftSub"></p>
+      <p class="small-label" data-t="titleLabel"></p>
+      <input class="title-in" id="draftTitle" maxlength="120">
+      <p class="small-label" data-t="bodyLabel"></p>
+      <textarea id="draft" rows="9"></textarea>
+      <div class="count"><span id="dCount">0</span></div>
+      <div class="note" id="fallbackNote" hidden data-t="fallback"></div>
+      <button class="ghost" id="regen" data-t="regen"></button>
+      <button class="ghost" id="back1" data-t="back"></button>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section id="step3" hidden>
+    <div class="card">
+      <h2 data-t="platQ"></h2>
+      <p class="sub" data-t="platSub"></p>
+      <div class="plats">
+        <button class="plat" data-p="google"><span class="ic g">G</span><span><b>Google</b><small data-t="gDesc"></small></span></button>
+        <button class="plat" data-p="tripadvisor"><span class="ic t">◎</span><span><b>Tripadvisor</b><small data-t="tDesc"></small></span></button>
+      </div>
+      <ol class="howto" id="howto"></ol>
+      <button class="ghost" id="copyTitle" hidden data-t="copyTitle"></button>
+      <button class="ghost" id="back2" data-t="back2"></button>
+    </div>
+  </section>
+
+  <p class="foot" data-t="foot"></p>
+</div>
+
+<div class="bar"><div class="in"><button class="cta" id="cta"></button></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+// ---------- 店舗設定の読み込み（?store=xxx） ----------
+(function(){
+  var id = (new URLSearchParams(location.search).get('store') || 'kurukuru').replace(/[^a-z0-9_-]/gi,'');
+  document.write('<script src="stores/' + id + '.js"><\/script>');
+})();
+</script>
+<script>
+var UI_LANGS = [['ja','日本語'],['en','English'],['zh','简体中文'],['tw','繁體中文'],['ko','한국어']];
+var OUT_LANGS = [['ja','日本語'],['en','English'],['zh','简体中文'],['tw','繁體中文'],['ko','한국어'],['fr','Français'],['es','Español'],['de','Deutsch'],['th','ไทย'],['id','Bahasa Indonesia']];
+
+var T = {
+ ja:{tagline:'今日の体験を口コミにするお手伝い',s1:'体験を選ぶ',s2:'文案を確認',s3:'投稿する',
+  rateQ:'今日の満足度は？',rateSub:'正直な評価で大丈夫です',rates:['','残念だった','いまひとつ','まあまあ','満足！','大満足！最高でした'],
+  optional:'任意',whoQ:'誰と来ましたか？',who:{solo:'ひとり',friends:'友達',family:'家族',couple:'恋人・夫婦',work:'仕事仲間'},
+  hiQ:'よかったところ',hiSub:'当てはまるものをタップ（いくつでも）',more:'もっと詳しく選ぶ',honestSub:'書きたい方だけ。正直な感想も口コミの大事な情報です',
+  commentQ:'ひとこと（任意）',commentSub:'自分の言葉を入れると、より自然な口コミになります',outLang:'口コミの言語',tone:'文章の雰囲気',
+  tones:{casual:'気軽に',polite:'ていねい',short:'短め'},
+  next1:'AIで口コミ文案を作る',needRate:'まず★を選んでください',skipAi:'AIを使わずに自分で書く →',
+  loading:'あなたの体験をもとに文案を作成中…',draftH:'口コミ文案',draftSub:'自由に書き換えてOK。ご自分の言葉に直すとより伝わります',
+  titleLabel:'タイトル（Tripadvisor用）',bodyLabel:'本文',regen:'↻ 別の表現で作り直す',back:'← 選択に戻る',next2:'この内容で投稿先を選ぶ',
+  fallback:'AIにつながらなかったため、簡易版の文案を表示しています。自由に書き足してください。',
+  platQ:'どこに投稿しますか？',platSub:'選ぶと、本文をコピーして投稿画面を開きます',gDesc:'Googleマップの口コミ',tDesc:'世界最大の旅行口コミサイト',
+  next3:'本文をコピーして投稿画面を開く',pickPlat:'投稿先を選んでください',copyTitle:'タイトルをコピー',back2:'← 文案に戻る',
+  howG:['下のボタンで本文がコピーされ、Googleの投稿画面が開きます','★をタップして評価を選びます','入力欄を長押しして「ペースト」で貼り付け、投稿します'],
+  howT:['先に「タイトルをコピー」してタイトル欄に貼り付けます','下のボタンで本文がコピーされ、Tripadvisorの投稿画面が開きます','★と本文を入れて投稿します（ログインが必要な場合があります）'],
+  copied:'コピーしました！投稿欄に貼り付けてください',titleCopied:'タイトルをコピーしました',
+  foot:'このツールは、あなたが選んだ内容と言葉をもとに文章づくりを手伝うだけです。自動投稿はしません。投稿前に必ず内容をご確認ください。'},
+ en:{tagline:'We help you turn today\'s visit into a review',s1:'Your visit',s2:'Check draft',s3:'Post',
+  rateQ:'How was your experience today?',rateSub:'Please be honest',rates:['','Disappointing','Not great','Okay','Good!','Amazing!'],
+  optional:'Optional',whoQ:'Who did you come with?',who:{solo:'Solo',friends:'Friends',family:'Family',couple:'Partner',work:'Colleagues'},
+  hiQ:'What did you like?',hiSub:'Tap all that apply',more:'Choose more details',honestSub:'Only if you want to. Honest feedback helps other travelers too',
+  commentQ:'Your own words (optional)',commentSub:'Adding a line of your own makes the review feel more like you',outLang:'Review language',tone:'Style',
+  tones:{casual:'Casual',polite:'Polite',short:'Short'},
+  next1:'Create a draft with AI',needRate:'Please pick a star rating first',skipAi:'Write it myself without AI →',
+  loading:'Writing a draft based on your visit…',draftH:'Your review draft',draftSub:'Edit freely — putting it in your own words makes it even better',
+  titleLabel:'Title (for Tripadvisor)',bodyLabel:'Review',regen:'↻ Try different wording',back:'← Back to choices',next2:'Choose where to post',
+  fallback:'We couldn\'t reach the AI, so here is a simple draft. Feel free to add to it.',
+  platQ:'Where would you like to post?',platSub:'We\'ll copy your review and open the review page',gDesc:'Reviews on Google Maps',tDesc:'The world\'s largest travel review site',
+  next3:'Copy review & open page',pickPlat:'Choose where to post',copyTitle:'Copy title',back2:'← Back to draft',
+  howG:['Tap the button below — your review is copied and Google opens','Tap the stars to rate','Long-press the text box, paste, and post'],
+  howT:['First tap "Copy title" and paste it into the title field','Tap the button below — your review is copied and Tripadvisor opens','Add your stars and review, then submit (you may need to log in)'],
+  copied:'Copied! Paste it into the review box',titleCopied:'Title copied',
+  foot:'This tool only helps you put your own choices and words into text. Nothing is posted automatically — please check the text before posting.'},
+ zh:{tagline:'帮您把今天的体验写成评价',s1:'选择体验',s2:'确认文案',s3:'发布',
+  rateQ:'今天的满意度如何？',rateSub:'请如实评价',rates:['','很失望','不太好','还可以','满意！','非常满意！'],
+  optional:'可选',whoQ:'和谁一起来的？',who:{solo:'一个人',friends:'朋友',family:'家人',couple:'恋人・夫妻',work:'同事'},
+  hiQ:'喜欢哪些地方？',hiSub:'点选符合的项目（可多选）',more:'选择更多细节',honestSub:'愿意的话再填。真实的感受对其他游客也很有帮助',
+  commentQ:'说几句（可选）',commentSub:'加入自己的话，评价会更自然',outLang:'评价语言',tone:'文风',
+  tones:{casual:'轻松',polite:'礼貌',short:'简短'},
+  next1:'用AI生成评价文案',needRate:'请先选择星级',skipAi:'不用AI，自己写 →',
+  loading:'正在根据您的体验生成文案…',draftH:'评价文案',draftSub:'可以自由修改，用自己的话写更能打动人',
+  titleLabel:'标题（Tripadvisor用）',bodyLabel:'正文',regen:'↻ 换一种说法',back:'← 返回选择',next2:'选择发布平台',
+  fallback:'暂时无法连接AI，以下为简易文案，请自由补充。',
+  platQ:'要发布到哪里？',platSub:'选择后会复制正文并打开评价页面',gDesc:'Google地图评价',tDesc:'全球最大的旅游点评网站',
+  next3:'复制正文并打开页面',pickPlat:'请选择发布平台',copyTitle:'复制标题',back2:'← 返回文案',
+  howG:['点击下方按钮，正文会被复制并打开Google评价页面','点击星星选择评分','长按输入框粘贴，然后发布'],
+  howT:['先点击“复制标题”，粘贴到标题栏','点击下方按钮，正文会被复制并打开Tripadvisor','选择星级并粘贴正文后提交（可能需要登录）'],
+  copied:'已复制！请粘贴到评价栏',titleCopied:'已复制标题',
+  foot:'本工具只根据您选择的内容和您的话帮助整理文字，不会自动发布。发布前请务必确认内容。'},
+ tw:{tagline:'幫您把今天的體驗寫成評論',s1:'選擇體驗',s2:'確認文案',s3:'發布',
+  rateQ:'今天的滿意度如何？',rateSub:'請如實評價',rates:['','很失望','不太好','還可以','滿意！','非常滿意！'],
+  optional:'選填',whoQ:'和誰一起來的？',who:{solo:'一個人',friends:'朋友',family:'家人',couple:'情侶・夫妻',work:'同事'},
+  hiQ:'喜歡哪些地方？',hiSub:'點選符合的項目（可複選）',more:'選擇更多細節',honestSub:'願意的話再填。真實的感受對其他旅客也很有幫助',
+  commentQ:'說幾句（選填）',commentSub:'加入自己的話，評論會更自然',outLang:'評論語言',tone:'文風',
+  tones:{casual:'輕鬆',polite:'禮貌',short:'簡短'},
+  next1:'用AI產生評論文案',needRate:'請先選擇星等',skipAi:'不用AI，自己寫 →',
+  loading:'正在根據您的體驗產生文案…',draftH:'評論文案',draftSub:'可以自由修改，用自己的話寫更能打動人',
+  titleLabel:'標題（Tripadvisor用）',bodyLabel:'內文',regen:'↻ 換一種說法',back:'← 返回選擇',next2:'選擇發布平台',
+  fallback:'暫時無法連線AI，以下為簡易文案，請自由補充。',
+  platQ:'要發布到哪裡？',platSub:'選擇後會複製內文並開啟評論頁面',gDesc:'Google地圖評論',tDesc:'全球最大的旅遊評論網站',
+  next3:'複製內文並開啟頁面',pickPlat:'請選擇發布平台',copyTitle:'複製標題',back2:'← 返回文案',
+  howG:['點擊下方按鈕，內文會被複製並開啟Google評論頁面','點擊星星選擇評分','長按輸入框貼上，然後發布'],
+  howT:['先點「複製標題」，貼到標題欄','點擊下方按鈕，內文會被複製並開啟Tripadvisor','選擇星等並貼上內文後送出（可能需要登入）'],
+  copied:'已複製！請貼到評論欄',titleCopied:'已複製標題',
+  foot:'本工具只根據您選擇的內容和您的話幫忙整理文字，不會自動發布。發布前請務必確認內容。'},
+ ko:{tagline:'오늘의 체험을 리뷰로 쓰는 것을 도와드려요',s1:'체험 선택',s2:'초안 확인',s3:'게시',
+  rateQ:'오늘 만족도는 어떠셨나요?',rateSub:'솔직하게 평가해 주세요',rates:['','실망했다','별로였다','보통','만족!','대만족! 최고였어요'],
+  optional:'선택',whoQ:'누구와 오셨나요?',who:{solo:'혼자',friends:'친구',family:'가족',couple:'연인・부부',work:'동료'},
+  hiQ:'좋았던 점',hiSub:'해당하는 것을 모두 탭하세요',more:'더 자세히 고르기',honestSub:'원하시는 분만. 솔직한 감상도 다른 여행자에게 도움이 돼요',
+  commentQ:'한마디 (선택)',commentSub:'직접 쓴 말을 넣으면 더 자연스러운 리뷰가 돼요',outLang:'리뷰 언어',tone:'문체',
+  tones:{casual:'편하게',polite:'정중하게',short:'짧게'},
+  next1:'AI로 리뷰 초안 만들기',needRate:'먼저 별점을 선택해 주세요',skipAi:'AI 없이 직접 쓰기 →',
+  loading:'체험을 바탕으로 초안을 작성 중…',draftH:'리뷰 초안',draftSub:'자유롭게 고쳐 쓰세요. 내 말로 바꾸면 더 잘 전달돼요',
+  titleLabel:'제목 (Tripadvisor용)',bodyLabel:'본문',regen:'↻ 다른 표현으로 다시 만들기',back:'← 선택으로 돌아가기',next2:'게시할 곳 선택',
+  fallback:'AI에 연결하지 못해 간단한 초안을 표시합니다. 자유롭게 덧붙여 주세요.',
+  platQ:'어디에 게시할까요?',platSub:'선택하면 본문을 복사하고 리뷰 페이지를 엽니다',gDesc:'Google 지도 리뷰',tDesc:'세계 최대 여행 리뷰 사이트',
+  next3:'본문 복사하고 페이지 열기',pickPlat:'게시할 곳을 선택해 주세요',copyTitle:'제목 복사',back2:'← 초안으로 돌아가기',
+  howG:['아래 버튼을 누르면 본문이 복사되고 Google 리뷰 페이지가 열립니다','별을 탭해 평점을 선택합니다','입력란을 길게 눌러 붙여넣기 후 게시합니다'],
+  howT:['먼저 "제목 복사"를 눌러 제목란에 붙여넣습니다','아래 버튼을 누르면 본문이 복사되고 Tripadvisor가 열립니다','별점과 본문을 넣고 제출합니다 (로그인이 필요할 수 있어요)'],
+  copied:'복사했어요! 리뷰 입력란에 붙여넣으세요',titleCopied:'제목을 복사했어요',
+  foot:'이 도구는 고객님이 고른 내용과 직접 쓴 말을 바탕으로 문장 정리를 도울 뿐이며, 자동으로 게시하지 않습니다. 게시 전에 꼭 내용을 확인해 주세요.'}
+};
+
+var S = window.STORE;
+var st = { ui:'ja', out:'ja', rating:0, bowls:0, who:'', sel:{}, honest:{}, tone:'casual', step:1, plat:'', variant:0, title:'', body:'', fallback:false };
+var $ = function(id){ return document.getElementById(id); };
+function t(k){ return T[st.ui][k]; }
+function L(obj){ return obj[st.ui] || obj.en || obj.ja; }
+
+function detectLang(){
+  var q = new URLSearchParams(location.search).get('lang');
+  if (q && T[q]) return q;
+  var n = (navigator.language || 'ja').toLowerCase();
+  if (n.indexOf('ja')===0) return 'ja';
+  if (n.indexOf('ko')===0) return 'ko';
+  if (n.indexOf('zh')===0) return /tw|hk|mo|hant/.test(n) ? 'tw' : 'zh';
+  return 'en';
+}
+
+// ---------- 描画 ----------
+function chip(item, on, onTap){
+  var b = document.createElement('button');
+  b.className = 'chip' + (on ? ' on' : '');
+  b.innerHTML = '<span>' + item.emoji + '</span><span></span>';
+  b.lastChild.textContent = L(item.label);
+  b.onclick = onTap;
+  return b;
+}
+function renderChips(){
+  var hl = $('highlights'); hl.innerHTML='';
+  S.highlights.forEach(function(it){ hl.appendChild(chip(it, st.sel[it.id], function(){ toggle(st.sel,it.id); })); });
+  var cats = $('cats'); cats.innerHTML='';
+  S.categories.forEach(function(c){
+    var d = document.createElement('div'); d.className='cat';
+    var h = document.createElement('h3'); h.textContent = L(c.title); d.appendChild(h);
+    var w = document.createElement('div'); w.className='chips';
+    c.items.forEach(function(it){ w.appendChild(chip(it, st.sel[it.id], function(){ toggle(st.sel,it.id); })); });
+    d.appendChild(w); cats.appendChild(d);
+  });
+  var ho = $('honest'); ho.innerHTML='';
+  S.honest.items.forEach(function(it){ ho.appendChild(chip(it, st.honest[it.id], function(){ toggle(st.honest,it.id); })); });
+  var who = $('who'); who.innerHTML='';
+  ['solo','friends','family','couple','work'].forEach(function(k){
+    who.appendChild(chip({emoji:{solo:'🙋',friends:'👫',family:'👨‍👩‍👧',couple:'💑',work:'💼'}[k],label:{ja:T.ja.who[k],en:T.en.who[k],zh:T.zh.who[k],tw:T.tw.who[k],ko:T.ko.who[k]}}, st.who===k, function(){ st.who = st.who===k ? '' : k; renderChips(); }));
+  });
+}
+function toggle(map,id){ if(map[id]) delete map[id]; else map[id]=1; renderChips(); updateCta(); }
+
+function renderStars(){
+  var w = $('stars'); w.innerHTML='';
+  for (var i=1;i<=5;i++){ (function(n){
+    var b=document.createElement('button'); b.textContent='★'; b.setAttribute('aria-label', n+' star');
+    if (n<=st.rating) b.className='on';
+    b.onclick=function(){ st.rating=n; renderStars(); updateCta(); };
+    w.appendChild(b);
+  })(i); }
+  $('rateLabel').textContent = st.rating ? t('rates')[st.rating] : '';
+}
+
+function renderBowls(){
+  $('bowlsIn').value = st.bowls || '';
+  $('bowlsIn').placeholder = '0';
+  var n = Math.min(10, Math.ceil(st.bowls/10)), s='';
+  for (var i=0;i<n;i++) s+='<div class="bowl"></div>';
+  $('bowlStack').innerHTML = s;
+}
+
+function renderStatic(){
+  document.documentElement.lang = {ja:'ja',en:'en',zh:'zh-Hans',tw:'zh-Hant',ko:'ko'}[st.ui];
+  document.title = L(S.name) + ' | Review';
+  $('storeName').textContent = L(S.name);
+  [].forEach.call(document.querySelectorAll('[data-t]'), function(el){ var v=t(el.getAttribute('data-t')); if (typeof v==='string') el.textContent=v; });
+  $('honestTitle').textContent = L(S.honest.title);
+  if (S.counter && S.counter.enabled){
+    $('counterTitle').textContent = L(S.counter.title); $('unit').textContent = L(S.counter.unit);
+    var q=$('quick'); q.innerHTML='';
+    S.counter.quick.forEach(function(v){ var b=document.createElement('button'); b.textContent=v+L(S.counter.unit).replace(/^(bowls)$/,' $1'); b.onclick=function(){ st.bowls=v; renderBowls(); }; q.appendChild(b); });
+  } else $('counterCard').hidden = true;
+  var lg=$('langs'); lg.innerHTML='';
+  UI_LANGS.forEach(function(l){ var b=document.createElement('button'); b.textContent=l[1]; if(l[0]===st.ui) b.className='on'; b.onclick=function(){ setUi(l[0]); }; lg.appendChild(b); });
+  var o=$('outLang'); o.innerHTML='';
+  OUT_LANGS.forEach(function(l){ var op=document.createElement('option'); op.value=l[0]; op.textContent=l[1]; o.appendChild(op); }); o.value=st.out;
+  var tn=$('tone'); tn.innerHTML='';
+  ['casual','polite','short'].forEach(function(k){ var op=document.createElement('option'); op.value=k; op.textContent=t('tones')[k]; tn.appendChild(op); }); tn.value=st.tone;
+  renderStars(); renderChips(); renderBowls(); renderHowto(); updateCta();
+}
+function setUi(l){ st.ui=l; st.out=l; renderStatic(); }
+
+function renderHowto(){
+  var h=$('howto'); h.innerHTML='';
+  if (!st.plat) return;
+  (st.plat==='google'?t('howG'):t('howT')).forEach(function(s){ var li=document.createElement('li'); li.textContent=s; h.appendChild(li); });
+  $('copyTitle').hidden = st.plat!=='tripadvisor';
+  [].forEach.call(document.querySelectorAll('.plat'), function(b){ b.classList.toggle('on', b.getAttribute('data-p')===st.plat); });
+}
+
+function go(step){
+  st.step=step;
+  [1,2,3].forEach(function(i){ $('step'+i).hidden = i!==step; });
+  [].forEach.call(document.querySelectorAll('#steps div'), function(d){ var s=+d.getAttribute('data-s'); d.className = s===step?'on':(s<step?'done':''); });
+  updateCta(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateCta(){
+  var c=$('cta'); c.disabled=false; c.hidden=false;
+  if (st.step===1){ c.textContent = st.rating ? t('next1') : t('needRate'); c.disabled = !st.rating; }
+  else if (st.step===2){ c.textContent=t('next2'); c.disabled = $('draftCard').hidden || !$('draft').value.trim(); }
+  else { c.textContent = st.plat ? t('next3') : t('pickPlat'); c.disabled = !st.plat; }
+}
+
+// ---------- 文案生成 ----------
+function labelsEn(map, list){ return list.filter(function(it){ return map[it.id]; }).map(function(it){ return it.label.en; }); }
+function allItems(){ var a=S.highlights.slice(); S.categories.forEach(function(c){ a=a.concat(c.items); }); return a; }
+
+function generate(){
+  go(2);
+  $('loadingCard').hidden=false; $('draftCard').hidden=true; updateCta();
+  st.variant++;
+  var payload = {
+    api:'generate', store:S.id, lang:st.out, tone:st.tone, rating:st.rating,
+    bowls: (S.counter&&S.counter.enabled&&st.bowls)? st.bowls : '',
+    who: st.who, likes: JSON.stringify(labelsEn(st.sel, allItems())),
+    dislikes: JSON.stringify(labelsEn(st.honest, S.honest.items)),
+    comment: $('comment').value.trim().slice(0,300), v: st.variant
+  };
+  var done = function(title, body, fb){
+    st.fallback=!!fb; $('fallbackNote').hidden=!fb;
+    $('draftTitle').value=title||''; $('draft').value=body||'';
+    $('loadingCard').hidden=true; $('draftCard').hidden=false; countDraft(); updateCta();
+  };
+  if (!window.API_URL){ setTimeout(function(){ var f=localDraft(); done(f.title,f.body,true); }, 600); return; }
+  jsonp(payload, 30000).then(function(r){
+    if (r && r.ok && r.review) done(r.title, r.review, false);
+    else { var f=localDraft(); done(f.title,f.body,true); }
+  }).catch(function(){ var f=localDraft(); done(f.title,f.body,true); });
+}
+
+// AIにつながらない時の簡易文案（選んだ項目を並べるだけ）
+function localDraft(){
+  var lang = T[st.out] ? st.out : 'en';
+  var pick = function(list, map){ return list.filter(function(it){ return map[it.id]; }).map(function(it){ return it.label[lang]; }); };
+  var likes = pick(allItems(), st.sel), dis = pick(S.honest.items, st.honest);
+  var name = S.name[lang], c = $('comment').value.trim(), n = st.bowls, u = S.counter && S.counter.unit[lang];
+  var P = {
+    ja:{a:name+'に行きました。', b:n?'今日は'+n+u+'食べました！':'', l:likes.length?'よかったところ：'+likes.join('、')+'。':'', d:dis.length?'気になった点：'+dis.join('、')+'。':'', t:name+'に行ってきました'},
+    en:{a:'Visited '+name+'.', b:n?' I ate '+n+' bowls today!':'', l:likes.length?' Highlights: '+likes.join(', ')+'.':'', d:dis.length?' Could be better: '+dis.join(', ')+'.':'', t:'My visit to '+name},
+    zh:{a:'去了'+name+'。', b:n?'今天吃了'+n+'碗！':'', l:likes.length?'推荐：'+likes.join('，')+'。':'', d:dis.length?'可改进：'+dis.join('，')+'。':'', t:name+'体验'},
+    tw:{a:'去了'+name+'。', b:n?'今天吃了'+n+'碗！':'', l:likes.length?'推薦：'+likes.join('，')+'。':'', d:dis.length?'可改進：'+dis.join('，')+'。':'', t:name+'體驗'},
+    ko:{a:name+'에 다녀왔어요.', b:n?' 오늘 '+n+'그릇 먹었어요!':'', l:likes.length?' 좋았던 점: '+likes.join(', ')+'.':'', d:dis.length?' 아쉬웠던 점: '+dis.join(', ')+'.':'', t:name+' 방문 후기'}
+  }[lang];
+  return { title:P.t, body:[P.a+P.b, P.l, P.d, c].filter(Boolean).join('\n') };
+}
+
+function jsonp(params, ms){
+  return new Promise(function(resolve, reject){
+    var cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*1e5), s=document.createElement('script');
+    var timer=setTimeout(function(){ cleanup(); reject(new Error('timeout')); }, ms||20000);
+    function cleanup(){ try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); clearTimeout(timer); }
+    window[cb]=function(d){ cleanup(); resolve(d); };
+    s.src = window.API_URL+'?'+Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&')+'&callback='+cb;
+    s.onerror=function(){ cleanup(); reject(new Error('network')); };
+    document.body.appendChild(s);
+  });
+}
+
+function countDraft(){ $('dCount').textContent = $('draft').value.length; }
+
+// ---------- コピー＆投稿 ----------
+function copyText(txt){
+  if (navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(txt).catch(function(){ legacyCopy(txt); }); }
+  else legacyCopy(txt);
+}
+function legacyCopy(txt){
+  var ta=document.createElement('textarea'); ta.value=txt; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta);
+}
+function toast(msg){ var e=$('toast'); e.textContent=msg; e.classList.add('show'); clearTimeout(e._t); e._t=setTimeout(function(){ e.classList.remove('show'); }, 2600); }
+
+// ---------- イベント ----------
+$('cta').onclick = function(){
+  if (st.step===1) generate();
+  else if (st.step===2) go(3);
+  else if (st.plat){
+    copyText($('draft').value);
+    toast(t('copied'));
+    window.open(S.links[st.plat], '_blank', 'noopener');
+  }
+};
+$('minus').onclick=function(){ st.bowls=Math.max(0,(st.bowls||0)-5); renderBowls(); };
+$('plus').onclick=function(){ st.bowls=Math.min(S.counter.max,(st.bowls||0)+5); renderBowls(); };
+$('bowlsIn').oninput=function(){ var v=parseInt(this.value,10); st.bowls=isNaN(v)?0:Math.max(0,Math.min(S.counter.max,v)); var n=Math.min(10,Math.ceil(st.bowls/10)),s=''; for(var i=0;i<n;i++) s+='<div class="bowl"></div>'; $('bowlStack').innerHTML=s; };
+$('comment').oninput=function(){ $('cCount').textContent=this.value.length; };
+$('outLang').onchange=function(){ st.out=this.value; };
+$('tone').onchange=function(){ st.tone=this.value; };
+$('draft').oninput=function(){ countDraft(); updateCta(); };
+$('regen').onclick=generate;
+$('back1').onclick=function(){ go(1); };
+$('back2').onclick=function(){ go(2); };
+$('skipAi').onclick=function(e){ e.preventDefault(); go(2); $('loadingCard').hidden=true; $('draftCard').hidden=false; $('fallbackNote').hidden=true; $('draftTitle').value=''; $('draft').value=''; countDraft(); updateCta(); $('draft').focus(); };
+$('copyTitle').onclick=function(){ copyText($('draftTitle').value); toast(t('titleCopied')); };
+[].forEach.call(document.querySelectorAll('.plat'), function(b){ b.onclick=function(){ st.plat=b.getAttribute('data-p'); renderHowto(); updateCta(); }; });
+
+// ---------- 起動 ----------
+(function init(){
+  var r=document.documentElement.style;
+  r.setProperty('--primary', S.theme.primary); r.setProperty('--primary-dark', S.theme.primaryDark); r.setProperty('--accent', S.theme.accent);
+  $('logo').src = S.logo; $('logo').alt = S.name.en;
+  st.ui = detectLang(); st.out = st.ui;
+  renderStatic(); go(1);
+})();
+</script>
+</body>
+</html>

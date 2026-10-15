@@ -65,6 +65,9 @@ textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
 .qtools{display:flex;gap:8px;margin-top:14px}
 .qtools .ghost{margin-top:0;font-size:14px;padding:10px 8px}
 .warn{background:#FFF3D6;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#6A4B10;margin-top:8px}
+.hint{background:#EEF4FB;border-radius:12px;padding:10px 12px;font-size:13px;color:#2D4A6B;margin-top:10px}
+.hint p{margin:0 0 4px}.hint ul{margin:0;padding-left:18px}.hint li{margin:2px 0}
+.hint .ghost{margin-top:8px;font-size:14px;padding:9px}
 .howto{font-size:13.5px;padding-left:20px;margin:6px 0 0}
 .howto li{margin-bottom:4px}
 .toast{position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;transition:transform .25s;z-index:20;max-width:90%;text-align:center}
@@ -125,6 +128,11 @@ textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
       <textarea id="body" rows="10"></textarea>
       <div class="meter" id="meter"><span id="len">0</span><div class="bar"><i id="barFill"></i></div><span data-t="meterHint"></span></div>
       <div class="warn" id="tooLong" hidden data-t="tooLongG"></div>
+      <div class="hint" id="shortBox" hidden>
+        <p data-t="shortH"></p>
+        <ul id="shortList"></ul>
+        <button class="ghost" id="shortBtn" data-t="shortBtn"></button>
+      </div>
       <button class="ghost" id="altPlat"></button>
       <button class="ghost" id="back1" data-t="back"></button>
     </div>
@@ -163,6 +171,7 @@ var T = {
  ja:{tagline:'あなたの言葉で口コミを書くお手伝い',s1:'質問に答える',s2:'確認する',s3:'投稿する',
   intro1:'答えられる質問だけで大丈夫。ひと言でもOKです。',intro2:'日本語でも、母国語でも、どの言語で書いてもかまいません。',intro3:'🎤 キーボードのマイクを使えば、話すだけで入力できます。',
   moreQ:'＋ 質問を増やす',swapQ:'🔄 ほかの質問に替える',tooLongG:'Googleに投稿できるのは約4,000文字までです。Googleに投稿する場合は少し短くしてください。',
+  shortH:'短い答えがあります。何のことか分かるように少し書き足すと、読む人に伝わりやすくなります（このままでも投稿できます）。',shortBtn:'質問に戻って書き足す',shortOf:'への答え',
   next1:'答えをまとめる',needOne:'どれか1つ答えてください',
   checkH:'あなたの口コミ',checkSub:'答えをそのまま並べました。自由に書き足し・書き直しできます。',titleLabel:'タイトル',bodyLabel:'本文',meterHint:'目安：100文字以上',
   next2:'{p}に投稿する',alt:'Googleに投稿したい方はこちら',altT:'Tripadvisorに投稿したい方はこちら',back:'← 質問に戻る',
@@ -175,6 +184,7 @@ var T = {
  en:{tagline:'Helping you write a review in your own words',s1:'Answer',s2:'Check',s3:'Post',
   intro1:'Answer only the questions you like — a few words is fine.',intro2:'Write in any language you\'re comfortable with.',intro3:'🎤 Tap the mic on your keyboard to just speak your answers.',
   moreQ:'+ More questions',swapQ:'🔄 Different questions',tooLongG:'Google reviews are limited to about 4,000 characters. Please shorten it if you post on Google.',
+  shortH:'Some answers are very short. Adding a few words of context helps readers understand (you can still post as is).',shortBtn:'Go back and add a little more',shortOf:'answer to',
   next1:'Put my answers together',needOne:'Answer at least one question',
   checkH:'Your review',checkSub:'Here are your answers, as you wrote them. Feel free to add or change anything.',titleLabel:'Title',bodyLabel:'Review',meterHint:'Aim for 100+ characters',
   next2:'Post on {p}',alt:'Prefer Google? Post there instead',altT:'Prefer Tripadvisor? Post there instead',back:'← Back to questions',
@@ -187,6 +197,7 @@ var T = {
  zh:{tagline:'帮您用自己的话写评价',s1:'回答问题',s2:'确认',s3:'发布',
   intro1:'只回答想回答的问题就好，一句话也可以。',intro2:'用任何语言写都可以。',intro3:'🎤 点键盘上的麦克风，说话就能输入。',
   moreQ:'＋ 更多问题',swapQ:'🔄 换一批问题',tooLongG:'Google评价最多约4,000字。若发布到Google，请稍微缩短。',
+  shortH:'有些回答很短。稍微补充一下前因后果，读者会更容易理解（不改也可以发布）。',shortBtn:'回到问题补充一下',shortOf:'的回答',
   next1:'整理我的回答',needOne:'请至少回答一个问题',
   checkH:'您的评价',checkSub:'已按原样排列您的回答，可自由补充或修改。',titleLabel:'标题',bodyLabel:'正文',meterHint:'建议100字以上',
   next2:'发布到{p}',alt:'想发布到Google？点这里',altT:'想发布到Tripadvisor？点这里',back:'← 返回问题',
@@ -199,6 +210,7 @@ var T = {
  tw:{tagline:'幫您用自己的話寫評論',s1:'回答問題',s2:'確認',s3:'發布',
   intro1:'只回答想回答的問題就好，一句話也可以。',intro2:'用任何語言寫都可以。',intro3:'🎤 點鍵盤上的麥克風，說話就能輸入。',
   moreQ:'＋ 更多問題',swapQ:'🔄 換一批問題',tooLongG:'Google評論最多約4,000字。若發布到Google，請稍微縮短。',
+  shortH:'有些回答很短。稍微補充一下前因後果，讀者會更容易理解（不改也可以發布）。',shortBtn:'回到問題補充一下',shortOf:'的回答',
   next1:'整理我的回答',needOne:'請至少回答一個問題',
   checkH:'您的評論',checkSub:'已依原樣排列您的回答，可自由補充或修改。',titleLabel:'標題',bodyLabel:'內文',meterHint:'建議100字以上',
   next2:'發布到{p}',alt:'想發布到Google？點這裡',altT:'想發布到Tripadvisor？點這裡',back:'← 返回問題',
@@ -211,6 +223,7 @@ var T = {
  ko:{tagline:'내 말로 리뷰를 쓰도록 도와드려요',s1:'질문에 답하기',s2:'확인',s3:'게시',
   intro1:'답하고 싶은 질문만 답해도 괜찮아요. 한마디도 OK.',intro2:'어떤 언어로 써도 괜찮아요.',intro3:'🎤 키보드의 마이크를 누르면 말로 입력할 수 있어요.',
   moreQ:'+ 질문 더 보기',swapQ:'🔄 다른 질문으로',tooLongG:'Google 리뷰는 약 4,000자까지 가능해요. Google에 게시한다면 조금 줄여 주세요.',
+  shortH:'짧은 답변이 있어요. 무엇에 대한 이야기인지 조금 덧붙이면 읽는 사람이 이해하기 쉬워요 (그대로 게시해도 괜찮아요).',shortBtn:'질문으로 돌아가 덧붙이기',shortOf:'에 대한 답',
   next1:'답변 정리하기',needOne:'질문에 하나 이상 답해 주세요',
   checkH:'나의 리뷰',checkSub:'답변을 그대로 이어 붙였어요. 자유롭게 고치거나 덧붙이세요.',titleLabel:'제목',bodyLabel:'본문',meterHint:'100자 이상 권장',
   next2:'{p}에 게시하기',alt:'Google에 게시하고 싶다면 여기',altT:'Tripadvisor에 게시하고 싶다면 여기',back:'← 질문으로 돌아가기',
@@ -326,6 +339,26 @@ function compose(){
   return S.questions.map(function(q){ return (st.ans[q.id]||'').trim(); }).filter(Boolean).join('\n\n');
 }
 
+// とても短い答え（「はい」「おいしい」など）を見つける。日中韓・タイ語は文字数、それ以外は単語数で判定
+function isShort(txt){
+  var x = txt.replace(/[\s\u3000。、！？!?.,…・ー〜~]+/g, '');
+  if (!x) return false;
+  if (/[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\u0e00-\u0e7f]/.test(x)) return x.length < 8;
+  return txt.trim().split(/\s+/).length < 3;
+}
+function shortAnswers(){
+  return S.questions.filter(function(q){ var a=(st.ans[q.id]||'').trim(); return a && isShort(a); });
+}
+function renderShort(){
+  var list = shortAnswers(), ul = $('shortList'); ul.innerHTML = '';
+  $('shortBox').hidden = !list.length;
+  list.forEach(function(q){
+    var li = document.createElement('li');
+    li.textContent = '「' + st.ans[q.id].trim() + '」 — ' + L(q.q) + ' ' + t('shortOf');
+    ul.appendChild(li);
+  });
+}
+
 function updateMeter(){
   var n = $('body').value.length;
   $('len').textContent = n;
@@ -357,7 +390,7 @@ $('cta').onclick = function(){
   if (st.step===1){
     $('body').value = compose();
     $('title2').value = st.title;
-    updateMeter(); saveDraft(); go(2);
+    updateMeter(); renderShort(); saveDraft(); go(2);
   }
   else post(st.plat);
 };
@@ -368,6 +401,12 @@ $('altPlat').onclick = function(){ post(otherPlat()); };
 $('switchPlat').onclick = function(){ post(otherPlat()); };
 $('back1').onclick = function(){ go(1); };
 $('moreQ').onclick = moreQuestions;
+// 短い答えの質問に戻り、最初の短い答えの欄にカーソルを置く
+$('shortBtn').onclick = function(){
+  var first = shortAnswers()[0];
+  go(1);
+  if (first){ var el = $('q_' + first.id); if (el){ setTimeout(function(){ el.scrollIntoView({block:'center'}); el.focus(); }, 350); } }
+};
 $('swapQ').onclick = swapQuestions;
 $('back2').onclick = function(){ go(2); };
 $('copyTitle').onclick = function(){ copyText($('title2').value); toast(t('titleCopied')); };

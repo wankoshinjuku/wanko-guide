@@ -13,6 +13,7 @@ window.STORE = {
   logo: 'stores/kurukuru-logo.png',
   theme: { primary: '#C8201A', primaryDark: '#9E1612', accent: '#F3B61F' },
 
+  defaultPlatform: 'tripadvisor', // 既定の投稿先（自動でこちらを開く）
   links: {
     google: 'https://search.google.com/local/writereview?placeid=ChIJSG421fKNGGARsmjFynkRsJE',
     tripadvisor: 'https://www.tripadvisor.jp/UserReviewEdit-g14133667-d25244851-Kaiten_Wankosoba_Kurukuruwanko-Kabukicho_Shinjuku_Tokyo_Tokyo_Prefecture_Kanto.html'

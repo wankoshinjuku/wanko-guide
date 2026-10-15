@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Review Helper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#C8201A; --primary-dark:#9E1612; --accent:#F3B61F;
+  --bg:#FFF7EC; --card:#FFFFFF; --ink:#2A1C14; --muted:#7A685B; --line:#EEDFCC;
+  --soft:#FFF0DF; --shadow:0 6px 20px rgba(120,60,20,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","PingFang SC","Apple SD Gothic Neo",sans-serif;font-size:16px;line-height:1.55}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:540px;margin:0 auto;padding:0 16px 120px}
+
+.top{background:var(--primary);color:#fff;padding:14px 16px 46px;position:relative;overflow:hidden}
+.top::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-40px;height:80px;background:var(--bg);border-radius:50% 50% 0 0}
+.top-in{max-width:540px;margin:0 auto;position:relative;z-index:1}
+.langs{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.langs button{border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;border-radius:99px;padding:3px 10px;font-size:12px}
+.langs button.on{background:#fff;color:var(--primary);border-color:#fff;font-weight:700}
+.brand{display:flex;flex-direction:column;align-items:center;margin-top:12px;text-align:center}
+.logo{background:#fff;border-radius:18px;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.logo img{display:block;height:46px;width:auto}
+.brand h1{font-size:19px;margin:12px 0 2px;font-weight:800}
+.brand p{margin:0;font-size:13px;opacity:.92}
+
+.steps{display:flex;gap:6px;margin:-26px 0 16px;position:relative;z-index:2}
+.steps div{flex:1;background:#fff;border-radius:12px;padding:8px 4px;text-align:center;font-size:12px;color:var(--muted);box-shadow:var(--shadow)}
+.steps b{display:block;font-size:15px;color:var(--line)}
+.steps .on{color:var(--ink);font-weight:700}.steps .on b{color:var(--primary)}
+.steps .done b{color:var(--accent)}
+
+.card{background:var(--card);border-radius:20px;padding:18px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin:0 0 4px;font-weight:800}
+.card .sub{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+.intro{background:var(--soft);border-radius:16px;padding:12px 14px;font-size:13.5px;margin-bottom:14px}
+.intro p{margin:0 0 4px}.intro p:last-child{margin:0}
+
+.q{margin-bottom:18px}
+.q:last-child{margin-bottom:0}
+.q label{display:flex;gap:8px;align-items:flex-start;font-weight:700;font-size:15px;margin-bottom:6px}
+textarea,input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:11px 12px;font:inherit;font-size:16px;resize:vertical;background:#FFFCF7;color:var(--ink)}
+textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
+
+.meter{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.meter .bar{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+.meter .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.meter.ok .bar i{background:#2E9E5B}
+
+.cta{display:block;width:100%;border:0;border-radius:16px;padding:16px;font-size:17px;font-weight:800;background:var(--primary);color:#fff;box-shadow:0 6px 0 var(--primary-dark);transition:transform .08s}
+.cta:active{transform:translateY(3px);box-shadow:0 3px 0 var(--primary-dark)}
+.cta:disabled{background:#D9CBBB;box-shadow:0 6px 0 #C2B19E;cursor:not-allowed}
+.ghost{display:block;width:100%;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px;font-weight:700;font-size:15px;margin-top:10px}
+.bar-fixed{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}
+.bar-fixed .in{max-width:508px;margin:0 auto}
+.small-label{font-size:12px;color:var(--muted);font-weight:700;margin:0 0 4px}
+.howto{font-size:13.5px;padding-left:20px;margin:6px 0 0}
+.howto li{margin-bottom:4px}
+.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;transition:transform .25s;z-index:20;max-width:90%;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.foot{text-align:center;font-size:11.5px;color:var(--muted);margin-top:18px;padding:0 8px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="langs" id="langs"></div>
+    <div class="brand">
+      <div class="logo"><img id="logo" alt=""></div>
+      <h1 id="storeName"></h1>
+      <p data-t="tagline"></p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="steps" id="steps">
+    <div data-s="1"><b>1</b><span data-t="s1"></span></div>
+    <div data-s="2"><b>2</b><span data-t="s2"></span></div>
+    <div data-s="3"><b>3</b><span data-t="s3"></span></div>
+  </div>
+
+  <!-- STEP 1：質問に答える -->
+  <section id="step1">
+    <div class="intro">
+      <p data-t="intro1"></p>
+      <p data-t="intro2"></p>
+      <p data-t="intro3"></p>
+    </div>
+    <div class="card" id="questions"></div>
+    <div class="card">
+      <div class="q">
+        <label><span>✏️</span><span id="titleQ"></span></label>
+        <input type="text" id="titleIn" maxlength="120">
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2：確認・手直し -->
+  <section id="step2" hidden>
+    <div class="card">
+      <h2 data-t="checkH"></h2>
+      <p class="sub" data-t="checkSub"></p>
+      <p class="small-label" data-t="titleLabel"></p>
+      <input type="text" id="title2" maxlength="120">
+      <p class="small-label" style="margin-top:10px" data-t="bodyLabel"></p>
+      <textarea id="body" rows="10"></textarea>
+      <div class="meter" id="meter"><span id="len">0</span><div class="bar"><i id="barFill"></i></div><span data-t="meterHint"></span></div>
+      <button class="ghost" id="altPlat"></button>
+      <button class="ghost" id="back1" data-t="back"></button>
+    </div>
+  </section>
+
+  <!-- STEP 3：仕上げ -->
+  <section id="step3" hidden>
+    <div class="card">
+      <h2 data-t="doneH"></h2>
+      <p class="sub" data-t="doneSub"></p>
+      <ol class="howto" id="howto"></ol>
+      <button class="ghost" id="copyTitle" data-t="copyTitle"></button>
+      <button class="ghost" id="switchPlat"></button>
+      <button class="ghost" id="back2" data-t="back2"></button>
+    </div>
+  </section>
+
+  <p class="foot" data-t="foot"></p>
+</div>
+
+<div class="bar-fixed"><div class="in"><button class="cta" id="cta"></button></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// 店舗設定の読み込み（?store=xxx）
+(function(){
+  var id = (new URLSearchParams(location.search).get('store') || 'kurukuru').replace(/[^a-z0-9_-]/gi,'');
+  document.write('<script src="stores/' + id + '.js"><\/script>');
+})();
+</script>
+<script>
+var UI_LANGS = [['ja','日本語'],['en','English'],['zh','简体中文'],['tw','繁體中文'],['ko','한국어']];
+var MIN_LEN = 100;   // 長さの目安（文字数）
+
+var T = {
+ ja:{tagline:'あなたの言葉で口コミを書くお手伝い',s1:'質問に答える',s2:'確認する',s3:'投稿する',
+  intro1:'答えられる質問だけで大丈夫。ひと言でもOKです。',intro2:'日本語でも、母国語でも、どの言語で書いてもかまいません。',intro3:'🎤 キーボードのマイクを使えば、話すだけで入力できます。',
+  next1:'答えをまとめる',needOne:'どれか1つ答えてください',
+  checkH:'あなたの口コミ',checkSub:'答えをそのまま並べました。自由に書き足し・書き直しできます。',titleLabel:'タイトル',bodyLabel:'本文',meterHint:'目安：100文字以上',
+  next2:'{p}に投稿する',alt:'Googleに投稿したい方はこちら',altT:'Tripadvisorに投稿したい方はこちら',back:'← 質問に戻る',
+  doneH:'投稿画面を開きました',doneSub:'本文はコピー済みです。下の手順で貼り付けてください。',
+  howT:['★を選び、口コミ本文の欄を長押しして「ペースト」します','このページに戻り「タイトルをコピー」してタイトル欄に貼り付けます','残りの項目を入れて投稿します（ログインが必要な場合があります）'],
+  howG:['★をタップして評価を選びます','入力欄を長押しして「ペースト」で貼り付け、投稿します'],
+  next3:'もう一度コピーして{p}を開く',copyTitle:'タイトルをコピー',back2:'← 本文に戻る',
+  copied:'コピーしました！投稿欄に貼り付けてください',titleCopied:'タイトルをコピーしました',
+  foot:'このページは入力を手伝うだけで、文章を作ったり自動で投稿したりはしません。入力内容はこの端末の中だけで扱われ、どこにも送信されません。'},
+ en:{tagline:'Helping you write a review in your own words',s1:'Answer',s2:'Check',s3:'Post',
+  intro1:'Answer only the questions you like — a few words is fine.',intro2:'Write in any language you\'re comfortable with.',intro3:'🎤 Tap the mic on your keyboard to just speak your answers.',
+  next1:'Put my answers together',needOne:'Answer at least one question',
+  checkH:'Your review',checkSub:'Here are your answers, as you wrote them. Feel free to add or change anything.',titleLabel:'Title',bodyLabel:'Review',meterHint:'Aim for 100+ characters',
+  next2:'Post on {p}',alt:'Prefer Google? Post there instead',altT:'Prefer Tripadvisor? Post there instead',back:'← Back to questions',
+  doneH:'The review page is open',doneSub:'Your review is already copied. Follow the steps below to paste it.',
+  howT:['Choose your stars, then long-press the review box and paste','Come back here, tap "Copy title" and paste it into the title field','Fill in the rest and submit (you may need to log in)'],
+  howG:['Tap the stars to rate','Long-press the text box, paste, and post'],
+  next3:'Copy again & open {p}',copyTitle:'Copy title',back2:'← Back to my review',
+  copied:'Copied! Paste it into the review box',titleCopied:'Title copied',
+  foot:'This page only helps you type. It doesn\'t write anything for you or post automatically. What you type stays on this device and is never sent anywhere.'},
+ zh:{tagline:'帮您用自己的话写评价',s1:'回答问题',s2:'确认',s3:'发布',
+  intro1:'只回答想回答的问题就好，一句话也可以。',intro2:'用任何语言写都可以。',intro3:'🎤 点键盘上的麦克风，说话就能输入。',
+  next1:'整理我的回答',needOne:'请至少回答一个问题',
+  checkH:'您的评价',checkSub:'已按原样排列您的回答，可自由补充或修改。',titleLabel:'标题',bodyLabel:'正文',meterHint:'建议100字以上',
+  next2:'发布到{p}',alt:'想发布到Google？点这里',altT:'想发布到Tripadvisor？点这里',back:'← 返回问题',
+  doneH:'已打开评价页面',doneSub:'正文已复制，请按以下步骤粘贴。',
+  howT:['选择星级，长按评价正文栏并粘贴','回到本页点击“复制标题”，粘贴到标题栏','填写其余项目后提交（可能需要登录）'],
+  howG:['点击星星选择评分','长按输入框粘贴，然后发布'],
+  next3:'再次复制并打开{p}',copyTitle:'复制标题',back2:'← 返回正文',
+  copied:'已复制！请粘贴到评价栏',titleCopied:'已复制标题',
+  foot:'本页面只帮助您输入，不会替您写文字，也不会自动发布。输入内容只保存在本设备上，不会发送到任何地方。'},
+ tw:{tagline:'幫您用自己的話寫評論',s1:'回答問題',s2:'確認',s3:'發布',
+  intro1:'只回答想回答的問題就好，一句話也可以。',intro2:'用任何語言寫都可以。',intro3:'🎤 點鍵盤上的麥克風，說話就能輸入。',
+  next1:'整理我的回答',needOne:'請至少回答一個問題',
+  checkH:'您的評論',checkSub:'已依原樣排列您的回答，可自由補充或修改。',titleLabel:'標題',bodyLabel:'內文',meterHint:'建議100字以上',
+  next2:'發布到{p}',alt:'想發布到Google？點這裡',altT:'想發布到Tripadvisor？點這裡',back:'← 返回問題',
+  doneH:'已開啟評論頁面',doneSub:'內文已複製，請依以下步驟貼上。',
+  howT:['選擇星等，長按評論內文欄並貼上','回到本頁點「複製標題」，貼到標題欄','填寫其餘項目後送出（可能需要登入）'],
+  howG:['點擊星星選擇評分','長按輸入框貼上，然後發布'],
+  next3:'再次複製並開啟{p}',copyTitle:'複製標題',back2:'← 返回內文',
+  copied:'已複製！請貼到評論欄',titleCopied:'已複製標題',
+  foot:'本頁面只幫助您輸入，不會替您寫文字，也不會自動發布。輸入內容只保存在本裝置上，不會傳送到任何地方。'},
+ ko:{tagline:'내 말로 리뷰를 쓰도록 도와드려요',s1:'질문에 답하기',s2:'확인',s3:'게시',
+  intro1:'답하고 싶은 질문만 답해도 괜찮아요. 한마디도 OK.',intro2:'어떤 언어로 써도 괜찮아요.',intro3:'🎤 키보드의 마이크를 누르면 말로 입력할 수 있어요.',
+  next1:'답변 정리하기',needOne:'질문에 하나 이상 답해 주세요',
+  checkH:'나의 리뷰',checkSub:'답변을 그대로 이어 붙였어요. 자유롭게 고치거나 덧붙이세요.',titleLabel:'제목',bodyLabel:'본문',meterHint:'100자 이상 권장',
+  next2:'{p}에 게시하기',alt:'Google에 게시하고 싶다면 여기',altT:'Tripadvisor에 게시하고 싶다면 여기',back:'← 질문으로 돌아가기',
+  doneH:'리뷰 페이지를 열었어요',doneSub:'본문은 이미 복사됐어요. 아래 순서대로 붙여넣으세요.',
+  howT:['별점을 고르고 리뷰 본문란을 길게 눌러 붙여넣기','이 페이지로 돌아와 "제목 복사" 후 제목란에 붙여넣기','나머지 항목을 입력하고 제출 (로그인이 필요할 수 있어요)'],
+  howG:['별을 탭해 평점을 선택합니다','입력란을 길게 눌러 붙여넣기 후 게시합니다'],
+  next3:'다시 복사하고 {p} 열기',copyTitle:'제목 복사',back2:'← 본문으로 돌아가기',
+  copied:'복사했어요! 리뷰 입력란에 붙여넣으세요',titleCopied:'제목을 복사했어요',
+  foot:'이 페이지는 입력만 도와줄 뿐, 대신 글을 쓰거나 자동으로 게시하지 않습니다. 입력 내용은 이 기기 안에서만 다뤄지며 어디에도 전송되지 않습니다.'}
+};
+
+var S = window.STORE;
+var PNAME = { tripadvisor:'Tripadvisor', google:'Google' };
+var st = { ui:'ja', step:1, plat:'tripadvisor', ans:{}, title:'' };
+var $ = function(id){ return document.getElementById(id); };
+function t(k){ return T[st.ui][k]; }
+function L(o){ return o[st.ui] || o.en || o.ja; }
+function otherPlat(){ return st.plat==='tripadvisor' ? 'google' : 'tripadvisor'; }
+
+// 書きかけの保存（この端末のブラウザだけ。投稿画面から戻ってきても消えないように）
+var KEY = 'review-helper-' + S.id;
+function saveDraft(){ try{ localStorage.setItem(KEY, JSON.stringify({ ans:st.ans, title:st.title, body:$('body').value, t:Date.now() })); }catch(e){} }
+function loadDraft(){
+  try{
+    var d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (d && Date.now() - d.t < 6*3600*1000){ st.ans = d.ans || {}; st.title = d.title || ''; return d; }
+  }catch(e){}
+  return null;
+}
+
+function detectLang(){
+  var q = new URLSearchParams(location.search).get('lang');
+  if (q && T[q]) return q;
+  var n = (navigator.language || 'ja').toLowerCase();
+  if (n.indexOf('ja')===0) return 'ja';
+  if (n.indexOf('ko')===0) return 'ko';
+  if (n.indexOf('zh')===0) return /tw|hk|mo|hant/.test(n) ? 'tw' : 'zh';
+  return 'en';
+}
+
+function renderQuestions(){
+  var box = $('questions'); box.innerHTML = '';
+  S.questions.forEach(function(q){
+    var d = document.createElement('div'); d.className = 'q';
+    var lb = document.createElement('label'); lb.setAttribute('for', 'q_'+q.id);
+    lb.innerHTML = '<span></span><span></span>'; lb.firstChild.textContent = q.emoji; lb.lastChild.textContent = L(q.q);
+    var ta = document.createElement('textarea'); ta.id = 'q_'+q.id; ta.rows = 2; ta.maxLength = 1000;
+    ta.value = st.ans[q.id] || '';
+    ta.oninput = function(){ st.ans[q.id] = ta.value; saveDraft(); updateCta(); };
+    d.appendChild(lb); d.appendChild(ta); box.appendChild(d);
+  });
+  $('titleQ').textContent = L(S.titleQ);
+  $('titleIn').value = st.title;
+}
+
+function renderStatic(){
+  document.documentElement.lang = {ja:'ja',en:'en',zh:'zh-Hans',tw:'zh-Hant',ko:'ko'}[st.ui];
+  document.title = L(S.name) + ' | Review';
+  $('storeName').textContent = L(S.name);
+  [].forEach.call(document.querySelectorAll('[data-t]'), function(el){ var v=t(el.getAttribute('data-t')); if (typeof v==='string') el.textContent=v; });
+  var lg=$('langs'); lg.innerHTML='';
+  UI_LANGS.forEach(function(l){ var b=document.createElement('button'); b.textContent=l[1]; if(l[0]===st.ui) b.className='on'; b.onclick=function(){ st.ui=l[0]; renderStatic(); }; lg.appendChild(b); });
+  renderQuestions(); renderHowto(); updateCta();
+}
+
+function renderHowto(){
+  var h=$('howto'); h.innerHTML='';
+  (st.plat==='google'?t('howG'):t('howT')).forEach(function(s){ var li=document.createElement('li'); li.textContent=s; h.appendChild(li); });
+  $('copyTitle').hidden = st.plat!=='tripadvisor';
+  var alt = otherPlat()==='google' ? t('alt') : t('altT');
+  $('altPlat').textContent = alt; $('switchPlat').textContent = alt;
+}
+
+function anyAnswer(){ return S.questions.some(function(q){ return (st.ans[q.id]||'').trim(); }); }
+
+function go(step){
+  st.step=step;
+  [1,2,3].forEach(function(i){ $('step'+i).hidden = i!==step; });
+  [].forEach.call(document.querySelectorAll('#steps div'), function(d){ var s=+d.getAttribute('data-s'); d.className = s===step?'on':(s<step?'done':''); });
+  updateCta(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateCta(){
+  var c=$('cta');
+  if (st.step===1){ c.disabled = !anyAnswer(); c.textContent = c.disabled ? t('needOne') : t('next1'); }
+  else if (st.step===2){ c.disabled = !$('body').value.trim(); c.textContent = t('next2').replace('{p}', PNAME[st.plat]); }
+  else { c.disabled = false; c.textContent = t('next3').replace('{p}', PNAME[st.plat]); }
+}
+
+// 答えを質問の順に段落として並べるだけ（言葉を足さない・変えない）
+function compose(){
+  return S.questions.map(function(q){ return (st.ans[q.id]||'').trim(); }).filter(Boolean).join('\n\n');
+}
+
+function updateMeter(){
+  var n = $('body').value.length;
+  $('len').textContent = n;
+  $('barFill').style.width = Math.min(100, n / MIN_LEN * 100) + '%';
+  $('meter').classList.toggle('ok', n >= MIN_LEN);
+}
+
+function copyText(txt){
+  if (navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(txt).catch(function(){ legacyCopy(txt); }); }
+  else legacyCopy(txt);
+}
+function legacyCopy(txt){
+  var ta=document.createElement('textarea'); ta.value=txt; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta);
+}
+function toast(msg){ var e=$('toast'); e.textContent=msg; e.classList.add('show'); clearTimeout(e._t); e._t=setTimeout(function(){ e.classList.remove('show'); }, 2600); }
+
+// 本文をコピーして投稿画面を開き、仕上げの手順画面へ
+function post(plat){
+  st.plat = plat;
+  copyText($('body').value);
+  toast(t('copied'));
+  window.open(S.links[plat], '_blank', 'noopener');
+  renderHowto(); go(3);
+}
+
+$('cta').onclick = function(){
+  if (st.step===1){
+    $('body').value = compose();
+    $('title2').value = st.title;
+    updateMeter(); saveDraft(); go(2);
+  }
+  else post(st.plat);
+};
+$('titleIn').oninput = function(){ st.title = this.value; saveDraft(); };
+$('title2').oninput = function(){ st.title = this.value; $('titleIn').value = this.value; saveDraft(); };
+$('body').oninput = function(){ updateMeter(); saveDraft(); updateCta(); };
+$('altPlat').onclick = function(){ post(otherPlat()); };
+$('switchPlat').onclick = function(){ post(otherPlat()); };
+$('back1').onclick = function(){ go(1); };
+$('back2').onclick = function(){ go(2); };
+$('copyTitle').onclick = function(){ copyText($('title2').value); toast(t('titleCopied')); };
+
+(function init(){
+  var r=document.documentElement.style;
+  r.setProperty('--primary', S.theme.primary); r.setProperty('--primary-dark', S.theme.primaryDark); r.setProperty('--accent', S.theme.accent);
+  $('logo').src = S.logo; $('logo').alt = S.name.en;
+  st.ui = detectLang(); st.plat = S.defaultPlatform || 'tripadvisor';
+  var d = loadDraft();
+  renderStatic();
+  if (d && d.body){ $('body').value = d.body; $('title2').value = st.title; updateMeter(); }
+  go(1);
+})();
+</script>
+</body>
+</html>

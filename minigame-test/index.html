@@ -153,6 +153,9 @@ p > .art { width: 1.6em; height: 1.6em; vertical-align: -.45em; margin: 0 .1em; 
 .lvname, .lvlock { display: block; }
 .lvlock { font-size: 11px; font-weight: 500; }
 .lvhelp { margin: 2px 0; }
+.linebox p { margin: 0 0 10px; }
+.lineopen, button.lineopen { display: block; width: 100%; box-sizing: border-box; padding: 13px 12px; border: 0; border-radius: 10px; background: #06C755; color: #fff; font: inherit; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; }
+button.lineopen:disabled { opacity: .6; }
 .lvnote { margin: 6px 0 10px; }
 .lvtag { display: inline-block; margin: 0; padding: 2px 12px; border-radius: 99px; background: var(--accent-soft); color: var(--accent-ink); font-size: 13px; font-weight: 700; }
 .lvopened { margin: 6px 0; padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 800; }
@@ -3005,7 +3008,7 @@ function renderHub() {
     openTickets.length ? h("div", { class: "panel center" }, openTickets.map((u) => {
       const r = rewardOf(u.rewardId);
       return h("button", { type: "button", class: "big ticketbtn", onclick: () => showTicket(r, u.at) }, t("pt.ticketShow", { name: rewardName(r), n: Math.ceil((ticketEnd(u.at) - Date.now()) / 6e4) }));
-    })) : null,
+    })) : "",
     fromShop ? h("div", { class: "panel shopwelcome" }, h("p", {}, t("gh.shopWelcome")), h("a", { href: AIRWAIT_URL, target: "_blank", rel: "noopener" }, t("gh.airwait"))) : "",
     h(
       "div",
@@ -3014,6 +3017,7 @@ function renderHub() {
       h("p", { class: "muted" }, t("gh.stamps", { n: done, total: GAMES.length })),
       done === GAMES.length ? h("p", { class: "allstamps" }, t("gh.allStamps")) : null
     ),
+    lineBox(),
     pointsPanel(),
     h("p", { class: "muted pick" }, t("lv.pick")),
     levelPicker(renderHub),
@@ -3155,8 +3159,234 @@ onLang(() => {
   else if (view.name === "used") showTicket(view.r, view.at);
   else renderHub();
 });
+// game/line-sync.js
+var LIFF_ID = "2009029356-p3490y5B";
+var LIFF_URL = `https://liff.line.me/${LIFF_ID}`;
+var SYNC_API = "https://script.google.com/macros/s/AKfycbyPg2PADb5vIbX4wEyAn7G_WXE5V1vVQysqRt8o6Vusu-DWH2eyUTiXZhoOdDfLfFm2Hw/exec";
+var FRIEND_URL = "https://line.me/R/ti/p/@164prwkq";
+var syncOn = /\/minigame\/(index\.html)?$/.test(location.pathname);
+var noLineBtn = new URLSearchParams(location.search).get("from") === "w";
+var line = { mode: "browser", session: null, notice: null, friend: true, link: null, busy: false };
+var lt = (ja, en) => getLang() === "en" ? en : ja;
+var isSyncKey = (k) => k === "kwam.game.wallet" || k === "kwam.game.stamps" || k.startsWith("kwam.game.best.");
+var rawSet = store.set.bind(store);
+var applyingSnap = false;
+var syncTimer = 0;
+store.set = (k, v) => {
+  rawSet(k, v);
+  if (!isSyncKey(k) || applyingSnap) return;
+  rawSet("kwam.sync.at", String(Math.max(Date.now(), (Number(store.get("kwam.sync.at")) || 0) + 1)));
+  if (line.session) {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushNow, 1e3);
+  }
+};
+function localSnap() {
+  const bests = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith("kwam.game.best.")) bests[k] = Number(localStorage.getItem(k));
+    }
+  } catch {
+  }
+  return { wallet: loadWallet(), bests, stamps: [...getStamps()] };
+}
+var hasProgress = (s) => lifetimePoints(s.wallet) > 0 || s.stamps.length > 0 || Object.keys(s.bests).length > 0;
+function applySnap(snap, at) {
+  applyingSnap = true;
+  saveWallet({ ...emptyWallet(), ...snap.wallet });
+  store.set("kwam.game.stamps", JSON.stringify(snap.stamps || []));
+  for (const [k, v] of Object.entries(snap.bests || {})) store.set(k, String(v));
+  applyingSnap = false;
+  rawSet("kwam.sync.at", String(at || 0));
+}
+async function syncPost(q, keepalive = false) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 25e3);
+  try {
+    const r = await fetch(SYNC_API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(q), signal: ctl.signal, keepalive });
+    return await r.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+async function pushNow(keepalive = false) {
+  clearTimeout(syncTimer);
+  if (!line.session) return;
+  const at = Number(store.get("kwam.sync.at")) || Date.now();
+  if (at === line.pushedAt) return;
+  const r = await syncPost({ action: "save", session: line.session, at, snap: localSnap() }, keepalive);
+  if (r?.ok && r.result === "stale") {
+    applySnap(r.snap, r.at);
+    if (view.name === "hub") renderHub();
+  } else if (r?.ok) line.pushedAt = at;
+}
+async function checkMoved() {
+  const code = store.get("kwam.sync.code");
+  if (!code) return;
+  const r = await syncPost({ action: "status", code });
+  if (!r?.ok) return;
+  if (r.state === "used") {
+    const w = loadWallet();
+    w.points = 0;
+    w.earned = 0;
+    saveWallet(w);
+    rawSet("kwam.sync.code", "");
+    rawSet("kwam.sync.moved", "1");
+    line.link = null;
+    if (view.name === "hub") renderHub();
+  } else if (r.state !== "open") {
+    rawSet("kwam.sync.code", "");
+    line.link = null;
+  }
+}
+var CLAIM_TEXT = {
+  ok: ["記録を引き継ぎました。これからはLINEから遊ぶと記録が続きます。", "Your record has been transferred. Play from LINE to keep it going."],
+  done_before: ["この記録は引き継ぎ済みです。", "This record has already been transferred."],
+  already: ["記録の引き継ぎは1人1回です。今回の記録は追加していません。", "A record can be transferred only once per person. This one was not added."],
+  used: ["この記録は別のLINEアカウントに引き継ぎ済みです。", "This record was already transferred to another LINE account."],
+  expired: ["引き継ぎの期限が切れました。遊んだ端末のゲーム画面から、もう一度お試しください。", "This transfer has expired. Please try again from the device you played on."],
+  none: ["引き継ぎの情報が見つかりませんでした。遊んだ端末のゲーム画面から、もう一度お試しください。", "Transfer not found. Please try again from the device you played on."]
+};
+function xferFrom(search) {
+  const sp = new URLSearchParams(search);
+  return sp.get("xfer") || new URLSearchParams(sp.get("liff.state") || "").get("xfer");
+}
+function loadLiffSdk() {
+  return new Promise((ok, ng) => {
+    const el = document.createElement("script");
+    el.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+    el.onload = ok;
+    el.onerror = ng;
+    document.head.append(el);
+  });
+}
+async function lineInit() {
+  if (!syncOn) return;
+  const sp = new URLSearchParams(location.search);
+  const viaLine = /\bLine\//i.test(navigator.userAgent) || [...sp.keys()].some((k) => k.startsWith("liff") || k === "xfer");
+  if (!viaLine) return checkMoved();
+  const before = xferFrom(location.search);
+  try {
+    await loadLiffSdk();
+    await window.liff.init({ liffId: LIFF_ID });
+  } catch {
+    return checkMoved();
+  }
+  const liff = window.liff;
+  let xfer = before || xferFrom(location.search);
+  if (!liff.isLoggedIn()) {
+    if (liff.isInClient() || xfer || [...sp.keys()].some((k) => k.startsWith("liff"))) {
+      liff.login({ redirectUri: location.href });
+      return new Promise(() => {
+      });
+    }
+    return checkMoved();
+  }
+  const idToken = liff.getIDToken();
+  const owner = store.get("kwam.sync.owner");
+  const local = localSnap();
+  const localAt = Number(store.get("kwam.sync.at")) || 0;
+  const auto = !xfer && !owner && hasProgress(local);
+  if (auto) xfer = (await syncPost({ action: "deposit", snap: local }))?.code;
+  const r = await syncPost(xfer ? { action: "claim", idToken, code: xfer } : { action: "login", idToken });
+  if (!r?.ok) {
+    line.notice = lt("LINEの記録を読み込めませんでした。通信のよい場所で開き直してください。", "Could not load your LINE record. Please reopen with a better connection.");
+    return;
+  }
+  line.mode = "line";
+  line.session = r.session;
+  if (owner === r.session && localAt > r.at && !xfer) {
+    await pushNow();
+  } else {
+    applySnap(r.snap, r.at);
+  }
+  rawSet("kwam.sync.owner", r.session);
+  if (xfer && CLAIM_TEXT[r.result] && !(auto && r.result !== "ok")) {
+    line.claim = r.result;
+    if (r.result === "ok") {
+      try {
+        line.friend = (await liff.getFriendship()).friendFlag;
+      } catch {
+        line.friend = false;
+      }
+    }
+  }
+  if (sp.has("xfer")) history.replaceState(null, "", location.pathname);
+}
+async function startTransfer() {
+  if (line.busy) return;
+  line.busy = true;
+  renderHub();
+  const r = await syncPost({ action: "deposit", snap: localSnap(), prev: store.get("kwam.sync.code") || "" });
+  line.busy = false;
+  if (r?.ok && r.code) {
+    rawSet("kwam.sync.code", r.code);
+    line.link = `${LIFF_URL}?xfer=${r.code}`;
+  } else {
+    toast(lt("通信できませんでした。もう一度お試しください。", "Connection failed. Please try again."));
+  }
+  if (view.name === "hub") renderHub();
+}
+function lineBox() {
+  if (!syncOn) return "";
+  if (line.mode === "line") {
+    if (line.notice) return h("div", { class: "panel linebox" }, h("p", {}, line.notice));
+    if (!line.claim) return "";
+    const text = CLAIM_TEXT[line.claim][getLang() === "en" ? 1 : 0];
+    return h(
+      "div",
+      { class: "panel linebox" },
+      h("p", { class: "strong" }, text),
+      line.friend ? null : h("a", { class: "lineopen", href: FRIEND_URL }, lt("公式LINEを友だち追加する", "Add our official LINE"))
+    );
+  }
+  if (line.notice) return h("div", { class: "panel linebox" }, h("p", {}, line.notice));
+  if (noLineBtn) return "";
+  if (store.get("kwam.sync.moved") === "1") {
+    return h(
+      "div",
+      { class: "panel linebox" },
+      h("p", { class: "strong" }, lt("記録はLINEに引き継ぎました。", "Your record is now on LINE.")),
+      h("a", { class: "lineopen", href: LIFF_URL }, lt("LINEで続きを遊ぶ", "Keep playing on LINE"))
+    );
+  }
+  if (!hasProgress(localSnap())) return "";
+  if (line.link) {
+    return h(
+      "div",
+      { class: "panel linebox" },
+      h("p", {}, lt("準備ができました。下のボタンでLINEを開くと、記録が引き継がれます。", "Ready. Tap below to open LINE and transfer your record.")),
+      h("a", { class: "lineopen", href: line.link }, lt("LINEを開いて引き継ぐ", "Open LINE to transfer"))
+    );
+  }
+  return h(
+    "div",
+    { class: "panel linebox" },
+    h("p", {}, lt("公式LINEに登録すると、ポイントと記録を引き継げます。", "Register with our official LINE to transfer your points and records.")),
+    h("button", { type: "button", class: "lineopen", disabled: line.busy, onclick: startTransfer }, line.busy ? lt("準備しています…", "Preparing...") : lt("公式LINEに登録して記録を引き継ぐ", "Register on LINE and transfer my record"))
+  );
+}
+document.addEventListener("visibilitychange", () => {
+  if (!syncOn) return;
+  if (document.hidden) pushNow(true);
+  else if (line.mode === "browser") checkMoved();
+});
 chrome();
 await loadCfg();
+var linePending = lineInit().catch(() => {
+});
+var viaLineNow = syncOn && (/\bLine\//i.test(navigator.userAgent) || [...new URLSearchParams(location.search).keys()].some((k) => k.startsWith("liff") || k === "xfer"));
+if (viaLineNow) {
+  $("#hub").replaceChildren(h("div", { class: "panel center" }, h("p", { class: "muted" }, lt("記録を読み込んでいます…", "Loading your record..."))));
+  await Promise.race([linePending, new Promise((ok) => setTimeout(ok, 9e3))]);
+}
+linePending.then(() => {
+  if (view.name === "hub") renderHub();
+});
 if (!levelOpen(gameLevel)) gameLevel = "normal";
 var first = new URLSearchParams(location.search).get("g");
 var firstGame = GAMES.find((g) => g.id === first);
@@ -3164,5 +3394,3 @@ if (firstGame) play(firstGame);
 else renderHub();
 
 </script>
-</body>
-</html>

@@ -162,6 +162,7 @@ p > .art { width: 1.6em; height: 1.6em; vertical-align: -.45em; margin: 0 .1em; 
 .rewards button:disabled { background: var(--line); border-color: var(--line); color: var(--muted); opacity: 1; box-shadow: none; }
 .rwhy { grid-column: 1 / -1; text-align: right; font-size: 12px; margin-top: -6px; }
 .usedlist { margin-top: 10px; }
+button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-height: 1.4; margin: 3px 0; }
 .usedlist p { margin: 2px 0; }
 .usedbig { font-size: 30px; font-weight: 800; color: var(--bad); margin: 4px 0; }
 .warnline { font-weight: 700; color: var(--bad); }
@@ -726,18 +727,23 @@ var DICT = {
   "pt.lifetime": { ja: "累計 {n} ポイント（使っても減りません）", en: "Total earned: {n} points (does not go down when you use points)" },
   "pt.usedToday": { ja: "今日使った特典", en: "Rewards used today" },
   "pt.usedLine": { ja: "{time}　{name}（{n} ポイント）", en: "{time}  {name} ({n} points)" },
-  "pt.showStaff": { ja: "この画面をスタッフに見せてください。", en: "Please show this screen to a staff member." },
+  "pt.showStaff": { ja: "この画面をスタッフに見せてください。スクリーンショットは無効です。", en: "Please show this live screen to a staff member. Screenshots are not valid." },
   "pt.after": { ja: "使えるポイント {left}・累計 {all}", en: "Available {left}, total earned {all}" },
   "pt.rewards": { ja: "ポイントで使える特典", en: "Rewards you can get with points" },
   "pt.none": { ja: "特典は準備中です。ポイントはためておけます。", en: "Rewards are coming soon. Your points are saved until then." },
   "pt.cost": { ja: "{n} ポイント", en: "{n} points" },
   "pt.need": { ja: "あと {n} ポイント", en: "{n} more points" },
   "pt.use": { ja: "使う", en: "Use" },
-  "pt.useTitle": { ja: "この特典にポイントを使いますか？", en: "Use your points on this reward?" },
-  "pt.useNote": { ja: "お店でスタッフに見せる時に押してください。使うと取り消しや変更はできません。", en: "Tap this in the shop when you show a staff member. Once used, it cannot be undone or changed." },
-  "pt.confirm": { ja: "使う", en: "Use" },
+  "pt.useTitle": { ja: "本当に使いますか？", en: "Are you sure you want to use this?" },
+  "pt.useNote": { ja: "お店でスタッフに見せる時に押してください。使うと、間違えて押した場合でも取り消しや変更はできません。", en: "Tap this in the shop when you show a staff member. Once used, it cannot be undone or changed, even if tapped by mistake." },
+  "pt.confirm": { ja: "使います", en: "Use it" },
   "pt.cancel": { ja: "やめる", en: "Cancel" },
-  "pt.used": { ja: "利用済み", en: "Used" },
+  "pt.used": { ja: "特典を利用しました", en: "Reward used" },
+  "pt.ticketLeft": { ja: "この画面を表示できるのは あと {time}", en: "This screen can be shown for {time} more" },
+  "pt.ticketShow": { ja: "利用画面をもう一度表示（{name}・あと {n} 分）", en: "Show the reward screen again ({name}, {n} min left)" },
+  "pt.expiredTitle": { ja: "表示できる時間が過ぎました", en: "The display time has ended" },
+  "pt.expiredBody": { ja: "この特典は利用できません。使ってから{n}分たつと、この画面は表示できません。", en: "This reward can no longer be used. The screen can only be shown for {n} minutes after use." },
+  "pt.expiredTag": { ja: "（表示期限切れ）", en: " (expired)" },
   "pt.usedAt": { ja: "{time} に使用", en: "Used at {time}" },
   "pt.limitRedeem": { ja: "1日に使えるのは{n}ポイントまでです", en: "You can use up to {n} points per day" },
   "pt.earned": { ja: "+{n} ポイント（使える {total}・累計 {all}）", en: "+{n} points (available {total}, total earned {all})" },
@@ -2868,39 +2874,67 @@ function pointsPanel() {
     list,
     usedToday.length ? h("div", { class: "usedlist" }, h("p", { class: "muted strong" }, t("pt.usedToday")), usedToday.map((u) => {
       const r = rewardById(u.rewardId);
-      return h("p", { class: "muted" }, t("pt.usedLine", { name: r ? rewardName(r) : u.rewardId, time: useTime(u.at), n: u.points }));
+      return h("p", { class: "muted" }, t("pt.usedLine", { name: r ? rewardName(r) : u.rewardId, time: useTime(u.at), n: u.points }), Date.now() >= ticketEnd(u.at) ? t("pt.expiredTag") : "");
     })) : null,
     cfg.enabled ? h("p", { class: "muted small" }, t("pt.note")) : null
   );
 }
 var useTime = (at) => new Date(at).toLocaleTimeString(getLang() === "en" ? "en-US" : "ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" });
+var TICKET_MINUTES = 15;
+var ticketEnd = (at) => Date.parse(at) + TICKET_MINUTES * 6e4;
+var mmss = (ms) => {
+  const sec = Math.ceil(Math.max(0, ms) / 1e3);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+};
+var rewardOf = (id) => cfg.rewards.find((r) => r.id === id) || { id, points: 0, name: { ja: id, en: id } };
+function showTicket(r, at) {
+  stop();
+  view = { name: "used", r, at };
+  $("#hub").hidden = true;
+  $("#play").hidden = false;
+  const backRow = () => h("div", { class: "row" }, h("button", { type: "button", class: "ghost", onclick: renderHub }, t("gh.back")));
+  const showExpired = () => {
+    stop();
+    $("#play").replaceChildren(h(
+      "div",
+      { class: "panel center ticket expired" },
+      h("p", { class: "usedbig" }, t("pt.expiredTitle")),
+      h("p", { class: "rbig" }, rewardName(r)),
+      h("p", {}, t("pt.expiredBody", { n: TICKET_MINUTES })),
+      backRow()
+    ));
+    current = { game: null, cleanups: [] };
+  };
+  if (Date.now() >= ticketEnd(at)) return showExpired();
+  const w = loadWallet();
+  const clock = h("div", { class: "clock" });
+  const left = h("p", { class: "strong ticketleft" });
+  const tick = () => {
+    if (Date.now() >= ticketEnd(at)) return showExpired();
+    clock.textContent = (/* @__PURE__ */ new Date()).toLocaleTimeString(getLang() === "en" ? "en-US" : "ja-JP", { timeZone: "Asia/Tokyo" });
+    left.textContent = t("pt.ticketLeft", { time: mmss(ticketEnd(at) - Date.now()) });
+  };
+  tick();
+  const iv = setInterval(tick, 1e3);
+  current = { game: null, cleanups: [() => clearInterval(iv)] };
+  $("#play").replaceChildren(h(
+    "div",
+    { class: "panel center ticket used" },
+    h("p", { class: "usedbig" }, t("pt.used")),
+    h("p", { class: "rbig" }, rewardName(r)),
+    h("p", {}, t("pt.usedAt", { time: new Date(at).toLocaleString(getLang() === "en" ? "en-US" : "ja-JP", { timeZone: "Asia/Tokyo" }) })),
+    clock,
+    h("div", { class: "stripe", "aria-hidden": "true" }),
+    left,
+    h("p", { class: "warnline" }, t("pt.showStaff")),
+    h("p", {}, t("pt.after", { left: w.points, all: lifetimePoints(w) })),
+    backRow()
+  ));
+}
 function showRedeem(r) {
   stop();
   view = { name: "redeem", r };
   const msg = h("p", { class: "msg", role: "status" });
-  const showUsed = (w) => {
-    view = { name: "used", r, w, show: showUsed };
-    stop();
-    const clock = h("div", { class: "clock" });
-    const tickClock = () => {
-      clock.textContent = (/* @__PURE__ */ new Date()).toLocaleTimeString(getLang() === "en" ? "en-US" : "ja-JP", { timeZone: "Asia/Tokyo" });
-    };
-    tickClock();
-    const iv = setInterval(tickClock, 1e3);
-    current = { game: null, cleanups: [() => clearInterval(iv)] };
-    $("#play").replaceChildren(h(
-      "div",
-      { class: "panel center ticket used" },
-      h("p", { class: "usedbig" }, t("pt.used")),
-      h("p", { class: "rbig" }, rewardName(r)),
-      h("p", {}, t("pt.usedAt", { time: new Date(w.redemptions.at(-1).at).toLocaleString(getLang() === "en" ? "en-US" : "ja-JP", { timeZone: "Asia/Tokyo" }) })),
-      clock,
-      h("div", { class: "stripe", "aria-hidden": "true" }),
-      h("p", { class: "muted" }, t("pt.showStaff")),
-      h("p", {}, t("pt.after", { left: w.points, all: lifetimePoints(w) })),
-      h("div", { class: "row" }, h("button", { type: "button", class: "ghost", onclick: renderHub }, t("gh.back")))
-    ));
-  };
   const confirmBtn = h("button", { type: "button", class: "big", onclick: () => {
     const res = redeem(loadWallet(), r, { rules: cfg.rules });
     if (!res.ok) {
@@ -2909,7 +2943,7 @@ function showRedeem(r) {
     }
     saveWallet(res.wallet);
     sounds.great();
-    showUsed(res.wallet);
+    showTicket(r, res.wallet.redemptions.at(-1).at);
   } }, t("pt.confirm"));
   $("#hub").hidden = true;
   $("#play").hidden = false;
@@ -2966,7 +3000,12 @@ function renderHub() {
       )
     );
   };
+  const openTickets = wallet.redemptions.filter((u) => Date.now() < ticketEnd(u.at));
   $("#hub").replaceChildren(
+    openTickets.length ? h("div", { class: "panel center" }, openTickets.map((u) => {
+      const r = rewardOf(u.rewardId);
+      return h("button", { type: "button", class: "big ticketbtn", onclick: () => showTicket(r, u.at) }, t("pt.ticketShow", { name: rewardName(r), n: Math.ceil((ticketEnd(u.at) - Date.now()) / 6e4) }));
+    })) : null,
     fromShop ? h("div", { class: "panel shopwelcome" }, h("p", {}, t("gh.shopWelcome")), h("a", { href: AIRWAIT_URL, target: "_blank", rel: "noopener" }, t("gh.airwait"))) : "",
     h(
       "div",
@@ -3099,7 +3138,7 @@ function renderResult(g, score, { best, isNew, gotStamp, stamps, pts, unlocked =
   again.focus();
 }
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden && current) renderHub();
+  if (document.hidden && current && view.name !== "used") renderHub();
 });
 $("#lang").addEventListener("click", () => {
   setLang(getLang() === "ja" ? "en" : "ja");
@@ -3113,7 +3152,7 @@ onLang(() => {
   if (view.name === "intro" || view.name === "playing") play(view.g);
   else if (view.name === "result") renderResult(view.g, view.score, view.meta);
   else if (view.name === "redeem") showRedeem(view.r);
-  else if (view.name === "used") view.show(view.w);
+  else if (view.name === "used") showTicket(view.r, view.at);
   else renderHub();
 });
 chrome();

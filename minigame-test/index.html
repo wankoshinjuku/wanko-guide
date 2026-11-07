@@ -721,7 +721,7 @@ var DICT = {
   "pt.available": { ja: "使えるポイント", en: "Available points" },
   "pt.title": { ja: "ポイント", en: "Points" },
   "pt.balance": { ja: "{n} ポイント", en: "{n} points" },
-  "pt.how": { ja: "遊んだ結果で、お子様は0〜3、普通は0〜5、職人は0〜10ポイントたまります。ポイントが付くのは同じゲームで1日{n}回までで、その後は練習モードとして遊べます。", en: "Each play earns points based on your result: 0–3 on Kids, 0–5 on Normal, 0–10 on Master. Points are given up to {n} times per game per day. After that you can keep playing in practice mode." },
+  "pt.how": { ja: "遊んだ結果でポイントがたまります。", en: "Earn points based on your results." },
   "pt.usable": { ja: "1日に使えるのは{n}ポイントまでです（今日はあと{left}ポイント）。", en: "You can use up to {n} points per day ({left} left today)." },
   "pt.lifetime": { ja: "累計 {n} ポイント（使っても減りません）", en: "Total earned: {n} points (does not go down when you use points)" },
   "pt.usedToday": { ja: "今日使った特典", en: "Rewards used today" },
@@ -970,15 +970,23 @@ function prune(w, today) {
   for (const d of Object.keys(w.days)) if (d < cut) delete w.days[d];
   w.redemptions = w.redemptions.slice(-50);
 }
-function earn(wallet, { gameId, points, rules = DEFAULT_RULES, now = /* @__PURE__ */ new Date() }) {
+function startPlay(wallet, gameId, rules = DEFAULT_RULES, now = /* @__PURE__ */ new Date()) {
   const w = structuredClone(wallet);
   const today = jstDay(now);
   prune(w, today);
   const day = w.days[today] ||= { plays: {}, earned: 0 };
   const plays = day.plays[gameId] || 0;
-  if (plays >= rules.playsPerGamePerDay) return { wallet: w, gained: 0, reason: "game_limit" };
-  const gained = Math.max(0, points | 0);
+  if (plays >= rules.playsPerGamePerDay) return { wallet: w, counted: false };
   day.plays[gameId] = plays + 1;
+  return { wallet: w, counted: true };
+}
+function earn(wallet, { points, counted, now = /* @__PURE__ */ new Date() }) {
+  const w = structuredClone(wallet);
+  const today = jstDay(now);
+  prune(w, today);
+  const day = w.days[today] ||= { plays: {}, earned: 0 };
+  if (!counted) return { wallet: w, gained: 0, reason: "game_limit" };
+  const gained = Math.max(0, points | 0);
   if (gained === 0) return { wallet: w, gained: 0, reason: "zero" };
   day.earned += gained;
   w.earned = lifetimePoints(w) + gained;
@@ -3027,6 +3035,8 @@ function begin(g) {
   const cleanups = [];
   current = { game: g, cleanups };
   $("#lang").disabled = true;
+  const started = startPlay(loadWallet(), g.id, cfg.rules);
+  saveWallet(started.wallet);
   let finished = false;
   g.start(stage, {
     onCleanup: (f) => cleanups.push(f),
@@ -3034,18 +3044,18 @@ function begin(g) {
       if (finished || current?.game !== g) return;
       finished = true;
       stop();
-      showResult(g, score);
+      showResult(g, score, started.counted);
     }
   });
 }
-function showResult(g, score) {
+function showResult(g, score, counted) {
   sounds.end();
   const wasOpen = { kids: levelOpen("kids"), pro: levelOpen("pro") };
   const { best, isNew } = saveBest(g.id, score, g.better);
   const before = getStamps().size;
   const stamps = addStamp(g.id);
   const earnedPoints = pointsFor(g, score);
-  const pts = earn(loadWallet(), { gameId: g.id, points: earnedPoints, rules: cfg.rules });
+  const pts = earn(loadWallet(), { points: earnedPoints, counted });
   saveWallet(pts.wallet);
   const unlocked = ["kids", "pro"].filter((l) => !wasOpen[l] && levelOpen(l));
   renderResult(g, score, { best, isNew, gotStamp: stamps.size > before, stamps: stamps.size, unlocked, title: earnedPoints, pts: { gained: pts.gained, reason: pts.reason, total: pts.wallet.points, lifetime: lifetimePoints(pts.wallet), left: playsLeft(pts.wallet, g.id, cfg.rules) } });

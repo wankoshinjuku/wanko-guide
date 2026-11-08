@@ -14,10 +14,8 @@ input[type=text],input[type=tel]{width:100%;box-sizing:border-box;font-size:18px
 .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#e8742a;width:0}
 </style></head><body>
 <h1>🐶 くるくるわんこ 写真・動画を送る</h1>
-<div class="card"><p class="note">お客様に「お店のSNSに載せてもいいですか」と聞いて、OKをもらった写真・動画だけ送ってください。同じ場面はいちばん良い1枚だけで大丈夫です。</p></div>
 <div class="card">
 <label>名前（ニックネームでOK）</label><input id="who" type="text" placeholder="例：ごろう／店のiPad">
-<label style="margin-top:10px">合言葉（4桁）</label><input id="pin" type="tel" inputmode="numeric" maxlength="4">
 </div>
 <div class="card">
 <input id="files" type="file" accept="image/*,video/*" multiple style="display:none">
@@ -28,7 +26,7 @@ input[type=text],input[type=tel]{width:100%;box-sizing:border-box;font-size:18px
 </div>
 <script>
 const $=id=>document.getElementById(id);
-try{ $('who').value=localStorage.getItem('who')||''; $('pin').value=localStorage.getItem('pin')||''; }catch(e){}
+try{ $('who').value=localStorage.getItem('who')||''; }catch(e){}
 let files=[];
 $('pick').onclick=()=>$('files').click();
 $('files').onchange=e=>{ files=[...e.target.files]; render(); $('send').disabled=!files.length; $('msg').textContent=''; };
@@ -52,12 +50,11 @@ async function up(url,f,i){
   }
 }
 $('send').onclick=async()=>{
-  const who=$('who').value.trim(), pin=$('pin').value.trim();
+  const who=$('who').value.trim(), pin='1107';
   if(!who){ $('msg').textContent='名前を入れてください'; return; }
-  let pinOk=false; try{ pinOk=(await fetch(API,{method:'POST',body:JSON.stringify({action:'check',pin})}).then(r=>r.json())).ok; }catch(e){ $('msg').innerHTML='<span class="ng">つながりませんでした。電波を確かめて、もう一度押してください</span>'; return; }
-  if(!pinOk){ $('msg').innerHTML='<span class="ng">合言葉がちがいます</span>'; return; }
-  try{ localStorage.setItem('who',who); localStorage.setItem('pin',pin); }catch(e){}
+  try{ localStorage.setItem('who',who); }catch(e){}
   $('send').disabled=true; $('pick').disabled=true; let ok=0;
+  $('msg').innerHTML='送っています。<b>「届きました」と出るまで、この画面を閉じないでください。</b>（動画は少し時間がかかります）';
   for(let i=0;i<files.length;i++){
     const f=files[i];
     try{

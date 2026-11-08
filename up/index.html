@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>くるくるわんこ 写真を送る</title>
+<style>
+body{font-family:-apple-system,"Hiragino Sans",sans-serif;margin:0;padding:16px;background:#fff7ee;color:#222}
+h1{font-size:20px;color:#e8742a;margin:4px 0 12px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+label{font-weight:bold;display:block;margin-bottom:6px}
+input[type=text],input[type=tel]{width:100%;box-sizing:border-box;font-size:18px;padding:10px;border:1px solid #ccc;border-radius:8px}
+.btn{display:block;width:100%;font-size:18px;padding:14px;border:0;border-radius:10px;background:#e8742a;color:#fff;font-weight:bold;margin-top:8px}
+.btn:disabled{background:#bbb}
+.note{font-size:13px;color:#a33;line-height:1.5}
+.row{font-size:14px;padding:6px 0;border-bottom:1px solid #eee}
+.ok{color:#2a8a2a;font-weight:bold}.ng{color:#c00;font-weight:bold}
+.bar{height:8px;background:#eee;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#e8742a;width:0}
+</style></head><body>
+<h1>🐶 くるくるわんこ 写真・動画を送る</h1>
+<div class="card"><p class="note">お客様に「お店のSNSに載せてもいいですか」と聞いて、OKをもらった写真・動画だけ送ってください。同じ場面はいちばん良い1枚だけで大丈夫です。</p></div>
+<div class="card">
+<label>名前（ニックネームでOK）</label><input id="who" type="text" placeholder="例：ごろう／店のiPad">
+<label style="margin-top:10px">合言葉（4桁）</label><input id="pin" type="tel" inputmode="numeric" maxlength="4">
+</div>
+<div class="card">
+<input id="files" type="file" accept="image/*,video/*" multiple style="display:none">
+<button class="btn" id="pick">写真・動画を選ぶ</button>
+<div id="list"></div>
+<button class="btn" id="send" disabled>送る</button>
+<div id="msg" style="margin-top:10px;font-weight:bold"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+try{ $('who').value=localStorage.getItem('who')||''; $('pin').value=localStorage.getItem('pin')||''; }catch(e){}
+let files=[];
+$('pick').onclick=()=>$('files').click();
+$('files').onchange=e=>{ files=[...e.target.files]; render(); $('send').disabled=!files.length; $('msg').textContent=''; };
+function mb(n){return (n/1048576).toFixed(1)+'MB'}
+function render(){ $('list').innerHTML=files.map((f,i)=>`<div class="row">${f.name}（${mb(f.size)}）<div class="bar"><i id="b${i}"></i></div><span id="s${i}"></span></div>`).join(''); }
+const API='https://script.google.com/macros/s/AKfycbyQJEuY3oQ2UxEJKqzsF9oEIwB4opo9V1CQkZiPvlbjYgiycU8NaqRQ1JSFghf_JWCs7A/exec';
+async function api(q){ const r=await fetch(API,{method:'POST',body:JSON.stringify(q)}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'NG'); return j; }
+async function up(url,f,i){
+  const CH=8*1024*1024; let pos=0;
+  while(pos<f.size){
+    const end=Math.min(pos+CH,f.size);
+    let r, tries=0;
+    while(true){
+      try{ r=await fetch(url,{method:'PUT',headers:{'Content-Range':`bytes ${pos}-${end-1}/${f.size}`},body:f.slice(pos,end)}); break; }
+      catch(e){ if(++tries>3) throw e; await new Promise(z=>setTimeout(z,2000*tries)); }
+    }
+    if(r.status===308){ const g=r.headers.get('Range'); pos=g?parseInt(g.split('-')[1])+1:end; }
+    else if(r.ok){ pos=f.size; }
+    else throw new Error('送信エラー '+r.status);
+    $('b'+i).style.width=(pos/f.size*100)+'%';
+  }
+}
+$('send').onclick=async()=>{
+  const who=$('who').value.trim(), pin=$('pin').value.trim();
+  if(!who){ $('msg').textContent='名前を入れてください'; return; }
+  let pinOk=false; try{ pinOk=(await fetch(API,{method:'POST',body:JSON.stringify({action:'check',pin})}).then(r=>r.json())).ok; }catch(e){ $('msg').innerHTML='<span class="ng">つながりませんでした。電波を確かめて、もう一度押してください</span>'; return; }
+  if(!pinOk){ $('msg').innerHTML='<span class="ng">合言葉がちがいます</span>'; return; }
+  try{ localStorage.setItem('who',who); localStorage.setItem('pin',pin); }catch(e){}
+  $('send').disabled=true; $('pick').disabled=true; let ok=0;
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    try{
+      $('s'+i).textContent=' 送信中…';
+      const url=(await api({action:'start',pin,who,name:f.name,mime:f.type,size:f.size})).url;
+      await up(url,f,i);
+      $('s'+i).innerHTML=' <span class="ok">届きました</span>'; ok++;
+    }catch(e){ $('s'+i).innerHTML=' <span class="ng">失敗：もう一度送ってください</span>'; }
+  }
+  $('msg').innerHTML=ok===files.length?`<span class="ok">${ok}件すべて届きました。ありがとうございます🐶</span>`:`<span class="ng">${files.length-ok}件が届いていません。もう一度選んで送ってください。</span>`;
+  $('pick').disabled=false; files=[]; $('files').value='';
+};
+</script></body></html>

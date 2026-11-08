@@ -26,17 +26,26 @@ a.card span{display:block;font-size:14px;line-height:1.6;color:var(--mute)}
 <div class="wrap">
   <h1>ゲーム＆診断</h1>
   <p class="sub">待ち時間に、どっちで遊ぶ？</p>
-  <a class="card" href="https://liff.line.me/2009029356-p3490y5B">
+  <a class="card" id="game" href="https://liff.line.me/2009029356-p3490y5B">
     <img src="d07.png" alt="">
     <div><b>🎮 ミニゲーム</b><span>わんこそばのゲームが21種類。遊ぶとポイントがたまって、特典と交換できます。</span></div>
     <div class="go">›</div>
   </a>
-  <a class="card" href="https://liff.line.me/2010374738-pfh4Szc5/index-next?quiz=1">
+  <a class="card" id="quiz" href="https://liff.line.me/2010374738-pfh4Szc5/index-next?quiz=1">
     <img src="d11.png" alt="">
     <div><b>🥢 わんこそば診断</b><span>ジョークのお楽しみ診断と、何杯食べられるか予想する本格診断（100問）。</span></div>
     <div class="go">›</div>
   </a>
-  <p class="note">ミニゲームのポイントと診断の結果は、このLINEに残ります。</p>
+  <p class="note" id="note">ミニゲームのポイントと診断の結果は、このLINEに残ります。</p>
 </div>
+<script>
+// 11/08 ごろうさん：LINEの中（リッチメニュー）ならLINE版へ。QRからふつうのブラウザで開いたら、LINEなしで遊べる方へ（あとでLINEに引き継げる）
+(function () {
+  if (/ Line\//i.test(navigator.userAgent)) return;
+  document.getElementById('game').href = 'https://wankoshinjuku.github.io/wanko-guide/minigame/';
+  document.getElementById('quiz').href = 'https://kurukuru-mypage.vercel.app/shindan-next?start=1';
+  document.getElementById('note').textContent = 'LINEの登録はいりません。あとで公式LINEに登録すると、ポイントや診断の結果をLINEに引き継げます。';
+})();
+</script>
 </body>
 </html>

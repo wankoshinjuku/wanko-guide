@@ -1,0 +1,45 @@
+{
+ "ja": {
+  "want": [
+   "ありがとうございます🐶 日本初の回転わんこそば「くるくるわんこ」で、お待ちしています🥢 西武新宿駅から徒歩1分です。",
+   "気にしていただき、うれしいです🐶 お椀がくるくる回ってくる楽しさを、ぜひ体験しに来てください🥢",
+   "ありがとうございます🐶 40分の食べ放題で、何杯いけるか挑戦しに来てください🔥 お待ちしています。"
+  ],
+  "record": [
+   "ご来店ありがとうございました🐶 {N}杯、お見事です🔥 次の記録更新もお待ちしています。",
+   "{N}杯の挑戦、ありがとうございました🥢 すばらしい食べっぷりです🐶 またお越しください。",
+   "ご来店ありがとうございました🐶 {N}杯おつかれさまでした🔥 またの挑戦をお待ちしています🥢"
+  ],
+  "video": [
+   "動画で紹介していただき、ありがとうございます🐶 また挑戦しに、ぜひお越しください🥢",
+   "動画をありがとうございます🐶 くるくるわんこの楽しさが伝わってうれしいです🔥"
+  ],
+  "visit": [
+   "ご来店ありがとうございました🐶 楽しんでいただけてうれしいです。またお待ちしています🥢",
+   "ご来店ありがとうございました🐶 次は記録更新を目指して、また挑戦しに来てください🔥",
+   "ご来店ありがとうございました🥢 日本初の回転わんこそば「くるくるわんこ」で、またお待ちしています🐶"
+  ],
+  "other": [
+   "投稿ありがとうございます🐶 日本初の回転わんこそば「くるくるわんこ」で、お待ちしています🥢",
+   "ありがとうございます🐶 新宿・歌舞伎町の「くるくるわんこ」で、お待ちしています🥢"
+  ]
+ },
+ "en": {
+  "want": [
+   "Thank you! 🐶 We'd love to see you at Kurukuru Wanko, Japan's first rotating wanko soba. 1 min from Seibu-Shinjuku Station 🥢"
+  ],
+  "record": [
+   "Thank you for visiting! {N} bowls, amazing 🔥 Hope to see you again 🐶"
+  ],
+  "video": [
+   "Thank you for the video! 🐶 Hope to see you again at Kurukuru Wanko 🥢"
+  ],
+  "visit": [
+   "Thank you for visiting Kurukuru Wanko! 🐶 Hope to see you again 🥢",
+   "Thanks for sharing! 🐶 Come back anytime to beat your record 🔥"
+  ],
+  "other": [
+   "Thanks for sharing! 🐶 Hope to see you at Kurukuru Wanko, Japan's first rotating wanko soba 🥢"
+  ]
+ }
+}

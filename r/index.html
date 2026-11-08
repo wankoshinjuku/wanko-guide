@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>返信を開く</title>
+<style>body{font-family:-apple-system,sans-serif;margin:24px 16px;background:#fff;color:#222;line-height:1.6}
+a.b{display:block;text-align:center;background:#111;color:#fff;padding:14px;border-radius:10px;text-decoration:none;font-size:18px;margin:16px 0}
+p.t{background:#f3f3f3;padding:12px;border-radius:8px;white-space:pre-wrap}</style></head>
+<body><p id="m">返信の画面を開いています…</p><p class="t" id="t"></p><a class="b" id="a" href="#">Xで返信の画面を開く</a>
+<p style="font-size:14px;color:#666">開いたら、文を見て、合わない所は直してから「返信」を押してください。</p>
+<script>
+(async()=>{
+ const q=new URLSearchParams(location.search), x=(q.get('x')||'').replace(/\D/g,''), k=(q.get('k')||'').split('.'), n=(q.get('n')||'').replace(/\D/g,'');
+ let t='';
+ try{const R=await (await fetch('replies.json',{cache:'no-store'})).json(); t=((R[k[0]]||{})[k[1]]||[])[Number(k[2])]||'';}catch(e){}
+ t=t.replace('{N}',n);
+ if(!x||!t){document.getElementById('m').textContent='リンクが正しくありません。LINEの「見る・いいね」から開いて、手で返信してください。';document.getElementById('a').style.display='none';return;}
+ const u='https://x.com/intent/post?in_reply_to='+x+'&text='+encodeURIComponent(t);
+ document.getElementById('t').textContent=t; document.getElementById('a').href=u;
+ location.replace(u);
+})();
+</script></body></html>

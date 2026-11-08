@@ -14,8 +14,9 @@ input[type=text],input[type=tel]{width:100%;box-sizing:border-box;font-size:18px
 .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#e8742a;width:0}
 </style></head><body>
 <h1>🐶 くるくるわんこ 写真・動画を送る</h1>
+<div class="card"><p style="margin:0;font-size:15px;line-height:1.6">送っていただいた写真・動画は、写っている方の了承をいただいたものとして、お店のSNSで使わせていただきます。</p></div>
 <div class="card">
-<label>名前（ニックネームでOK）</label><input id="who" type="text" placeholder="例：ごろう／店のiPad">
+<label>名前（なくてもOK）</label><input id="who" type="text" placeholder="ニックネームでOK">
 </div>
 <div class="card">
 <input id="files" type="file" accept="image/*,video/*" multiple style="display:none">
@@ -51,8 +52,7 @@ async function up(url,f,i){
 }
 $('send').onclick=async()=>{
   const who=$('who').value.trim(), pin='1107';
-  if(!who){ $('msg').textContent='名前を入れてください'; return; }
-  try{ localStorage.setItem('who',who); }catch(e){}
+  try{ if(who) localStorage.setItem('who',who); }catch(e){}
   $('send').disabled=true; $('pick').disabled=true; let ok=0;
   $('msg').innerHTML='送っています。<b>「届きました」と出るまで、この画面を閉じないでください。</b>（動画は少し時間がかかります）';
   for(let i=0;i<files.length;i++){

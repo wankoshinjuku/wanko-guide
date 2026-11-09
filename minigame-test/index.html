@@ -274,6 +274,11 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 .cnoodle { position: absolute; top: 50%; font-size: 52px; transform: translate(-50%, -30%); }
 @media (max-width: 480px) { .counter { font-size: 56px; } .dog { font-size: 96px; } .sortitem { font-size: 90px; } }
 
+.secretmsg { margin: 0 0 14px; padding: 14px 12px; border-radius: 16px; background: linear-gradient(135deg, #FFF4D6, #FFE1C7); border: 2px solid #F5B400; animation: secretpop .5s ease-out; }
+.secretmsg .secretbig { margin: 0; font-weight: 900; font-size: 1.15rem; color: #7C2D12; }
+.secretmsg .secretsub { margin: 6px 0 0; font-size: .85rem; color: #9A3412; }
+.rewards li.special .rname { font-weight: 900; color: #C2410C; }
+@keyframes secretpop { 0% { transform: scale(.85); opacity: 0; } 70% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); } }
 </style>
 
 <main class="wrap">
@@ -748,6 +753,19 @@ var DICT = {
   "pt.expiredBody": { ja: "この特典は利用できません。使ってから{n}分たつと、この画面は表示できません。", en: "This reward can no longer be used. The screen can only be shown for {n} minutes after use." },
   "pt.expiredTag": { ja: "（表示期限切れ）", en: " (expired)" },
   "pt.usedAt": { ja: "{time} に使用", en: "Used at {time}" },
+  "hd.m0": { ja: "{n}ポイントおめでとう。もっと頑張るといいことがあるよ", en: "Congrats on {n} points! Keep going and something good may happen." },
+  "hd.m1": { ja: "いい感じ", en: "Looking good!" },
+  "hd.m2": { ja: "この調子で頑張って", en: "Keep it up!" },
+  "hd.m3": { ja: "まだまだいけるね", en: "You've still got plenty in you!" },
+  "hd.m4": { ja: "わんこそばみたいに、どんどんいこう", en: "Keep them coming, just like wanko soba!" },
+  "hd.m5": { ja: "折り返し地点", en: "Halfway there!" },
+  "hd.m6": { ja: "おかわりの準備はいい？", en: "Ready for another bowl?" },
+  "hd.m7": { ja: "もうすぐ何かが起きるかも…", en: "Something might happen soon..." },
+  "hd.m8": { ja: "あと少し", en: "Almost there!" },
+  "hd.m9": { ja: "ラストスパート", en: "Final sprint!" },
+  "hd.ticket": { ja: "{n}ポイント達成。わんこそば無料券が出てきたよ", en: "{n} points! A free wanko soba ticket has appeared." },
+  "hd.ticketSub": { ja: "「ポイントで使える特典」から使えます。", en: "You can use it from \"Rewards you can get with points\"." },
+  "hd.reward": { ja: "わんこそば無料券（1名様）", en: "Free wanko soba (1 person)" },
   "pt.limitRedeem": { ja: "1日に使えるのは{n}ポイントまでです", en: "You can use up to {n} points per day" },
   "pt.earned": { ja: "+{n} ポイント（使える {total}・累計 {all}）", en: "+{n} points (available {total}, total earned {all})" },
   "pt.practice": { ja: "練習モード：このゲームは今日はもうポイントが付きません（1日{n}回まで）", en: "Practice mode: no more points from this game today (up to {n} times per day)" },
@@ -1008,11 +1026,11 @@ function playsLeft(wallet, gameId, rules = DEFAULT_RULES, now = /* @__PURE__ */ 
 }
 function redeemedToday(wallet, now = /* @__PURE__ */ new Date()) {
   const today = jstDay(now);
-  return wallet.redemptions.filter((r) => jstDay(new Date(r.at)) === today).reduce((sum, r) => sum + (r.points || 0), 0);
+  return wallet.redemptions.filter((r) => r.rewardId !== "wanko" && jstDay(new Date(r.at)) === today).reduce((sum, r) => sum + (r.points || 0), 0);
 }
 function canRedeem(wallet, reward, { rules = DEFAULT_RULES, now = /* @__PURE__ */ new Date() } = {}) {
   if (!reward || !(reward.points > 0)) return "invalid";
-  if (redeemedToday(wallet, now) + reward.points > rules.redeemPointsPerDay) return "limit_today";
+  if (!reward.special && redeemedToday(wallet, now) + reward.points > rules.redeemPointsPerDay) return "limit_today";
   if (wallet.points < reward.points) return "not_enough";
   return "ok";
 }
@@ -1022,6 +1040,7 @@ function redeem(wallet, reward, opts = {}) {
   const w = structuredClone(wallet);
   w.earned = lifetimePoints(w);
   w.points -= reward.points;
+  if (reward.special) w.wanko = Math.max(0, w.wanko | 0) + 1;
   w.redemptions.push({ at: (opts.now || /* @__PURE__ */ new Date()).toISOString(), rewardId: reward.id, points: reward.points });
   return { wallet: w, ok: true };
 }
@@ -2793,6 +2812,35 @@ var cfg = {
 var loadWallet = () => parseWallet(store.get("kwam.game.wallet"));
 var saveWallet = (w) => store.set("kwam.game.wallet", JSON.stringify(w));
 var rewardName = (r) => r.name[getLang()] || r.name.ja || r.name.en;
+// 11/09 ごろうさん：隠し要素。使えるポイントが区切りに届くと順番にひとこと、届くとわんこそば無料券。使うたびに必要ポイントが倍（15000→30000→60000…）
+// ひとことは必要ポイントの2/3から1/30ごと（15000なら10000・10500…14500）。見たひとことはこのスマホに控え、同じものは2回出さない
+var WANKO_BASE = 15000, HIDDEN_STEPS = 10;
+var wankoUsed = (w) => Math.max(0, w.wanko | 0);
+var wankoCost = (w) => WANKO_BASE * 2 ** wankoUsed(w);
+var wankoReward = (w) => ({ id: "wanko", points: wankoCost(w), special: true, name: { ja: DICT["hd.reward"].ja, en: DICT["hd.reward"].en } });
+function hiddenMarks(w) {
+  const c = wankoCost(w), a = [];
+  for (let i = 0; i < HIDDEN_STEPS; i++) a.push(Math.round(c * 2 / 3 + c / 3 / HIDDEN_STEPS * i));
+  a.push(c);
+  return a;
+}
+function hiddenState(w) {
+  let o = null;
+  try { o = JSON.parse(store.get("kwam.game.hidden") || ""); } catch {}
+  if (!o || o.tier !== wankoUsed(w) || !Number.isInteger(o.seen)) o = { tier: wankoUsed(w), seen: -1 };
+  return o;
+}
+function hiddenCheck(w) {
+  const m = hiddenMarks(w);
+  let k = -1;
+  m.forEach((v, i) => { if (w.points >= v) k = i; });
+  const st = hiddenState(w);
+  if (k <= st.seen) return null;
+  st.seen = k;
+  store.set("kwam.game.hidden", JSON.stringify(st));
+  return { i: k, n: m[k], ticket: k === m.length - 1 };
+}
+var wankoOpen = (w) => w.points >= wankoCost(w) || hiddenState(w).seen >= HIDDEN_STEPS;
 async function loadCfg() {
   try {
     const r = await fetch("rewards.json", { cache: "no-store" });
@@ -2852,11 +2900,12 @@ function pointsFor(g, score) {
 }
 function pointsPanel() {
   const w = loadWallet();
-  const list = cfg.enabled && cfg.rewards.length ? h("ul", { class: "rewards" }, cfg.rewards.map((r) => {
+  const allRewards = cfg.rewards.concat(cfg.enabled && wankoOpen(w) ? [wankoReward(w)] : []);
+  const list = cfg.enabled && allRewards.length ? h("ul", { class: "rewards" }, allRewards.map((r) => {
     const state = canRedeem(w, r, { rules: cfg.rules });
     return h(
       "li",
-      {},
+      r.special ? { class: "special" } : {},
       h("span", { class: "rname" }, rewardName(r)),
       h("span", { class: "rpts" }, t("pt.cost", { n: r.points })),
       h("button", { type: "button", class: "small", disabled: state !== "ok", onclick: () => showRedeem(r) }, t("pt.use")),
@@ -2865,7 +2914,7 @@ function pointsPanel() {
   })) : h("p", { class: "muted" }, t("pt.none"));
   const today = jstDay();
   const usedToday = w.redemptions.filter((u) => jstDay(new Date(u.at)) === today);
-  const rewardById = (id) => cfg.rewards.find((r) => r.id === id);
+  const rewardById = (id) => id === "wanko" ? wankoReward(w) : cfg.rewards.find((r) => r.id === id);
   return h(
     "div",
     { class: "panel points" },
@@ -2889,7 +2938,7 @@ var mmss = (ms) => {
   const sec = Math.ceil(Math.max(0, ms) / 1e3);
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 };
-var rewardOf = (id) => cfg.rewards.find((r) => r.id === id) || { id, points: 0, name: { ja: id, en: id } };
+var rewardOf = (id) => id === "wanko" ? { ...wankoReward(loadWallet()), points: 0 } : cfg.rewards.find((r) => r.id === id) || { id, points: 0, name: { ja: id, en: id } };
 function showTicket(r, at) {
   stop();
   view = { name: "used", r, at };
@@ -3101,7 +3150,16 @@ function showResult(g, score, counted) {
   const pts = earn(loadWallet(), { points: earnedPoints, counted });
   saveWallet(pts.wallet);
   const unlocked = ["kids", "pro"].filter((l) => !wasOpen[l] && levelOpen(l));
+  const hd = hiddenCheck(pts.wallet);
   renderResult(g, score, { best, isNew, gotStamp: stamps.size > before, stamps: stamps.size, unlocked, title: earnedPoints, pts: { gained: pts.gained, reason: pts.reason, total: pts.wallet.points, lifetime: lifetimePoints(pts.wallet), left: playsLeft(pts.wallet, g.id, cfg.rules) } });
+  if (hd) showHidden(hd);
+}
+function showHidden(hd) {
+  const box = $("#play .result-panel");
+  if (!box) return;
+  const msg = hd.ticket ? t("hd.ticket", { n: hd.n }) : t(`hd.m${hd.i}`, { n: hd.n });
+  box.prepend(h("div", { class: "secretmsg", role: "status" }, h("p", { class: "secretbig" }, msg), hd.ticket ? h("p", { class: "secretsub" }, t("hd.ticketSub")) : null));
+  try { sounds.great(); } catch {}
 }
 function renderResult(g, score, { best, isNew, gotStamp, stamps, pts, unlocked = [], title = 0 }) {
   view = { name: "result", g, score, meta: { best, isNew, gotStamp, stamps, pts, unlocked, title } };

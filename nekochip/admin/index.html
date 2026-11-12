@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>わんこそばチップ 管理画面</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+:root{--blue:#1a5fd8;--yellow:#ffd54a;--ink:#14161c;--muted:#4b5568;--line:#c9cfdb;--sunk:#f2f6fc;--warn:#c2410c;
+  --disp:"Dela Gothic One","Hiragino Sans",sans-serif;--body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:#fff;color:var(--ink)}
+body{font-family:var(--body);font-weight:500;font-size:15px;line-height:1.6;padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:900px;margin:0 auto;display:grid;gap:14px}
+.brand{background:var(--ink);color:#fff;border-radius:14px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.brand b{font-family:var(--disp);font-weight:400;font-size:17px;letter-spacing:.03em}
+.brand b span{color:var(--yellow)}
+.brand small{color:#e6eaf2;font-size:13px;font-weight:700}
+h2{font-family:var(--disp);font-weight:400;font-size:17px;margin:6px 0 0}
+p{margin:0}
+.note{color:var(--muted);font-size:13px}
+.login{max-width:380px;margin:30px auto 0;border:2px solid var(--ink);border-radius:16px;padding:20px 16px;display:grid;gap:12px;box-shadow:0 4px 0 var(--ink)}
+.login input{height:52px;border:2px solid var(--ink);border-radius:14px;padding:0 14px;font-size:18px;font-family:var(--body);width:100%}
+.btn{display:block;width:100%;background:var(--yellow);color:var(--ink);border:2px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:12px;font-family:var(--disp);font-weight:400;font-size:17px;cursor:pointer;margin-bottom:4px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.45;box-shadow:none}
+.small{display:inline-block;width:auto;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:3px 14px;font-family:var(--body);font-weight:700;font-size:13px;color:var(--ink);cursor:pointer}
+.err{color:var(--warn);font-size:13px;min-height:1.3em}
+.sumrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sumrow div{border:2px solid var(--ink);background:var(--blue);color:#fff;border-radius:14px;padding:8px 10px;display:grid;gap:2px;min-width:0}
+.sumrow span{font-size:11px;color:#e6eaf2;font-weight:700}
+.sumrow b{font-family:var(--disp);font-weight:400;font-size:20px;font-variant-numeric:tabular-nums}
+@media (max-width:520px){.sumrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tools input{flex:1;min-width:160px;height:40px;border:2px solid var(--ink);border-radius:12px;padding:0 12px;font-size:15px;font-family:var(--body)}
+.custs{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.cust{border:2px solid var(--ink);border-radius:14px;box-shadow:0 3px 0 var(--ink);padding:10px 12px;display:grid;gap:4px;min-width:0}
+.cust .name{font-weight:900;overflow-wrap:anywhere}
+.cust .nums{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px;color:var(--muted)}
+.cust .nums b{font-family:var(--disp);font-weight:400;color:var(--ink);margin-left:4px;font-variant-numeric:tabular-nums}
+.cust .last{font-size:12px;color:var(--muted)}
+.cust .last.ng{color:var(--warn);font-weight:700}
+.rows{list-style:none;margin:0;padding:0}
+.rows li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.rows li.off{opacity:.5}
+.rows li.off .n{text-decoration:line-through}
+.pill{display:inline-block;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:0 10px;font-weight:900;font-size:13px}
+.rows .right{display:flex;gap:8px;align-items:center}
+.ask{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--warn);font-weight:700}
+.rules{margin:0;padding-left:1.2em;color:var(--muted);font-size:13px;display:grid;gap:2px}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:18px 8px;border:2px dashed var(--line);border-radius:14px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><b>わんこそば<span>チップ</span> 管理画面</b><small id="now"></small></div>
+
+  <form id="login" class="login">
+    <p><b>NEKOKAJI・くるくるわんこ スタッフ用</b></p>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="パスワード" aria-label="パスワード">
+    <p class="err" id="lerr"></p>
+    <button class="btn" type="submit" id="lbtn">ひらく</button>
+  </form>
+
+  <div id="main" hidden style="display:grid;gap:14px">
+    <div class="sumrow" id="sum"></div>
+    <div class="tools">
+      <input id="q" type="search" placeholder="お名前でさがす" aria-label="お名前でさがす">
+      <button class="small" id="reload" type="button">最新にする</button>
+      <span class="note" id="upd"></span>
+    </div>
+
+    <h2>QRコードを読み込んだお客さん</h2>
+    <div class="custs" id="custs"></div>
+
+    <h2>チップに替えた記録</h2>
+    <ul class="rows" id="log"></ul>
+
+    <ul class="rules">
+      <li>確定はお客さんのスマホで押します。お客さんの画面（帯と時計が動いている画面）を見て、チップを渡してください。</li>
+      <li id="rule"></li>
+      <li>まちがえて確定した時は、下の記録の「取り消す」を押すと、その杯数がお客さんに戻ります。</li>
+    </ul>
+    <button class="small" id="logout" type="button">この端末で閉じる</button>
+  </div>
+</div>
+<script>
+(function () {
+  var API = 'https://script.google.com/macros/s/AKfycbzl5EmQkJGEnXd3zI9Dtmoj9qNlcFxU7QG9n71mrVJnjqDDxWwlPxWGwK4vWVvYAWjK/exec';
+  var $ = function (id) { return document.getElementById(id); };
+  var pw = '', data = null, asking = null;
+  function store(k, v) { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) {} }
+  function read(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function dt(t) { var d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function post(b) { b.pw = pw; return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(b) }).then(function (r) { return r.json(); }); }
+
+  function load(first) {
+    $('upd').textContent = '読み込み中…';
+    return post({ action: 'admin' }).then(function (r) {
+      if (!r.ok) {
+        if (r.error === 'pw' || r.error === 'locked') { store('nkpw', null); $('main').hidden = true; $('login').hidden = false; $('lerr').textContent = r.error === 'locked' ? 'まちがいが多いため、10分ほど待ってください。' : 'パスワードがちがいます。'; }
+        else $('upd').textContent = '読み込めませんでした';
+        return;
+      }
+      store('nkpw', pw); data = r; $('login').hidden = true; $('main').hidden = false; render();
+      var d = new Date(); $('upd').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' 時点';
+    }).catch(function () { $('upd').textContent = 'つながりませんでした'; if (first) $('lerr').textContent = 'つながりませんでした。もう一度押してください。'; });
+  }
+  function render() {
+    var r = data, cs = r.custs, rate = r.rate;
+    var U = 0, N = 0; r.log.forEach(function (l) { if (!l.cancelled) { U += l.cups; N++; } });
+    var T = cs.reduce(function (a, c) { return a + c.balance; }, 0);
+    $('sum').innerHTML = '<div><span>読み込んだ人</span><b>' + cs.length + '人</b></div><div><span>替えた回数</span><b>' + N + '回</b></div><div><span>替えた杯数</span><b>' + U + '杯</b></div><div><span>渡したチップ</span><b>$' + U * rate + '</b></div>';
+    var q = $('q').value.trim().toLowerCase();
+    var list = cs.filter(function (c) { return !q || c.name.toLowerCase().indexOf(q) >= 0; });
+    $('custs').innerHTML = list.map(function (c) {
+      return '<div class="cust"><div class="name">' + esc(c.name || '（名前なし）') + ' さん</div><div class="nums"><span>くるくるわんこ<b>' + c.total + '杯</b></span><span>替えた<b>' + c.used + '杯</b></span><span>残り<b>' + c.balance + '杯</b></span></div>' +
+        '<div class="last' + (c.eligible ? '' : ' ng') + '">' + (!c.eligible ? '開始後の挑戦がないため、まだ使えません' : c.last ? '最後の交換 ' + dt(c.last) : 'まだ交換なし') + '</div></div>';
+    }).join('') || '<div class="empty">' + (q ? '見つかりません' : 'まだいません') + '</div>';
+    var logs = r.log.filter(function (l) { return !q || l.name.toLowerCase().indexOf(q) >= 0; });
+    $('log').innerHTML = logs.map(function (l) {
+      var right = l.cancelled ? '<span class="note">取り消し済み</span>' : asking === l.no ? '<span class="ask">取り消しますか？<button class="small" data-yes="' + l.row + '" data-no="' + esc(l.no) + '">取り消す</button><button class="small" data-keep="1">やめる</button></span>' : '<button class="small" data-ask="' + esc(l.no) + '">取り消す</button>';
+      return '<li class="' + (l.cancelled ? 'off' : '') + '"><span class="n">' + dt(l.at) + '　' + esc(l.name) + ' さん　' + l.cups + '杯 → <span class="pill">$' + l.usd + '</span></span><span class="right">' + right + '</span></li>';
+    }).join('') || '<li><span class="note">まだありません</span></li>';
+    $('rule').textContent = '杯数の決まり（お客さんの画面には出しません）：サービス開始（' + r.start.replace(/-/g, '/') + '）より前の記録・過去記録の付与も使えます。ただし、開始後にくるくるわんこで1回以上挑戦していることが条件です。挑戦がない人は「残り」が0のままです。';
+  }
+  $('login').addEventListener('submit', function (e) { e.preventDefault(); pw = $('pw').value; $('lerr').textContent = ''; $('lbtn').disabled = true; load(true).then(function () { $('lbtn').disabled = false; }); });
+  $('reload').onclick = function () { load(); };
+  $('q').addEventListener('input', function () { if (data) render(); });
+  $('logout').onclick = function () { store('nkpw', null); pw = ''; location.reload(); };
+  $('log').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.ask) { asking = b.dataset.ask; render(); return; }
+    if (b.dataset.keep) { asking = null; render(); return; }
+    if (b.dataset.yes) {
+      b.disabled = true;
+      post({ action: 'cancel', row: Number(b.dataset.yes), no: b.dataset.no }).then(function (r) { asking = null; if (!r.ok) alertBox('取り消せませんでした。最新にしてから、もう一度押してください。'); load(); });
+    }
+  });
+  function alertBox(t) { $('upd').textContent = t; }
+  setInterval(function () { var d = new Date(); $('now').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }, 1000);
+  setInterval(function () { if (pw && !document.hidden && asking == null) load(); }, 60000);
+  var saved = read('nkpw'); if (saved) { pw = saved; load(); }
+})();
+</script>
+</body>
+</html>

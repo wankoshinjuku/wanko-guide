@@ -99,6 +99,12 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
       <div class="sub"><span>1杯 = $1</span><span id="total"></span></div>
     </div>
 
+    <div id="regnote" class="card" hidden>
+      <p style="font-weight:900;font-size:17px">チップへの交換は、NEKOKAJI 秋葉原の店内にあるQRコードから行います。</p>
+      <p class="note">お店で、店内のQRコードをスマホのカメラで読み込んでください。</p>
+    </div>
+
+    <div id="xsec" style="display:grid;gap:14px">
     <h2>チップに替える</h2>
     <div class="stepper">
       <button type="button" id="minus" aria-label="1杯へらす">−</button>
@@ -113,6 +119,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
       <li>替えた分は「替えられる杯数」から減ります。くるくるわんこの記録とランキングは減りません。</li>
       <li>確定するまで、杯数は減りません。</li>
     </ul>
+    </div>
 
     <h2>くるくるわんこの記録</h2>
     <ul class="rows" id="records"></ul>
@@ -176,7 +183,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
     var st = sp.get('liff.state'); if (st) { try { return new URLSearchParams(st.replace(/^[^?]*\?/, '')).get(k); } catch (e) {} }
     return null;
   }
-  var ev = param('ev'), idToken = null, me = null, showAll = false, ticketTimer = null;
+  var ev = 'mihon', regCode = ev ? null : param('r'), idToken = null, me = null, showAll = false, ticketTimer = null;
 
   function post(body) {
     var D = window.__mihon || (window.__mihon = { total: 333, used: 0, ex: [], last: null, seen: {} });
@@ -199,7 +206,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
     }, 500); });
   }
   function post_real_unused(body) {
-    body.ev = ev; body.idToken = idToken;
+    body.ev = ev; body.r = regCode; body.idToken = idToken;
     return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json(); });
   }
@@ -208,7 +215,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   }
 
   function start() { load(); return;
-    if (!ev) { msg('QRコードから開いてください', 'NEKOKAJI 秋葉原の店内にあるQRコードを、スマホのカメラで読み込んでください。'); return; }
+    if (!ev && !regCode) { msg('QRコードから開いてください', 'NEKOKAJI 秋葉原の店内にあるQRコードを、スマホのカメラで読み込んでください。'); return; }
     if (!window.liff) { fail(); return; }
     liff.init({ liffId: LIFF_ID }).then(function () {
       if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
@@ -217,7 +224,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
     }).catch(fail);
   }
   function load() {
-    post({ action: 'me' }).then(function (r) {
+    post({ action: ev ? 'me' : 'reg' }).then(function (r) {
       if (!r.ok && r.error === 'auth') { try { liff.logout(); } catch (e) {} liff.login({ redirectUri: location.href }); return; }
       if (!r.ok && r.error === 'qr') { msg('このQRコードは使えません', 'NEKOKAJI 秋葉原の店内にある、新しいQRコードを読み込んでください。'); return; }
       if (!r.ok) { fail(); return; }
@@ -227,6 +234,12 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
       }
       me = r; $('who').textContent = r.nick ? r.nick + ' さん' : '';
       $('joined').hidden = !r.first;
+      if (!ev) {   // 登録だけのQR（チケット）：杯数を見るだけ。交換の画面は出さない
+        $('joined').textContent = '登録できました。くるくるわんこの公式LINEの記録とつながりました。';
+        $('joined').hidden = false; if (!r.first) $('joined').textContent = '登録はすんでいます。';
+        $('xsec').hidden = true; $('regnote').hidden = false;
+        home(); return;
+      }
       if (r.ticket && Date.now() - r.ticket.at < TICKET_MIN * 60000) { ticket(r.ticket); return; }
       home();
     }).catch(fail);
@@ -262,6 +275,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   }
   var reqId = null;
   function confirmView() {
+    if (!ev) return;   // 登録だけのQRでは交換しない
     var v = parseInt($('cups').value, 10) || 0;
     if (v < 1 || v > me.balance) return;
     reqId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -271,6 +285,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
     show('confirm');
   }
   function doExchange() {
+    if (!ev) return;   // 登録だけのQRでは交換しない
     var v = parseInt($('cups').value, 10) || 0;
     $('ok').disabled = true; $('ok').textContent = '確定しています…';
     post({ action: 'exchange', cups: v, req: reqId }).then(function (r) {

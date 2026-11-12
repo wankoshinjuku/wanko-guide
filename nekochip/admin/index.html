@@ -105,7 +105,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--yellow);outline
     $('upd').textContent = '読み込み中…';
     return post({ action: 'admin' }).then(function (r) {
       if (!r.ok) {
-        if (r.error === 'pw' || r.error === 'locked') { store('nkpw', null); $('main').hidden = true; $('login').hidden = false; $('lerr').textContent = r.error === 'locked' ? 'まちがいが多いため、10分ほど待ってください。' : 'パスワードがちがいます。'; }
+        if (r.error === 'pw' || r.error === 'locked') { pw = ''; store('nkpw', null); $('main').hidden = true; $('login').hidden = false; $('lerr').textContent = r.error === 'locked' ? '5回まちがえたため、1時間ほど入れません。' : 'パスワードがちがいます。'; }
         else $('upd').textContent = '読み込めませんでした';
         return;
       }

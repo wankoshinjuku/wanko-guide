@@ -57,8 +57,8 @@ p{margin:0}
 @keyframes sp{to{transform:rotate(360deg)}}
 /* チケット */
 .ticket{background:var(--blue);color:#fff;border:2px solid var(--ink);border-radius:20px;overflow:hidden}
-.ticket .band{height:30px;background:repeating-linear-gradient(-45deg,var(--yellow) 0 14px,var(--ink) 14px 28px);background-size:40px 40px;animation:slide 1.4s linear infinite}
-@keyframes slide{to{background-position:40px 0}}
+.ticket .band{height:30px;background-color:var(--yellow);background-image:radial-gradient(circle,#fff 0 6px,transparent 7px);background-size:30px 30px;background-position:0 50%;border-bottom:2px solid var(--ink);animation:slide 1.2s linear infinite}
+@keyframes slide{to{background-position:30px 50%}}
 .ticket .body{padding:16px 18px 18px;display:grid;gap:10px}
 .ticket .kind{font-size:12px;letter-spacing:.12em;font-weight:700;opacity:.85}
 .ticket .row{display:flex;align-items:center;gap:16px}

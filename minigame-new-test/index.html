@@ -283,7 +283,7 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 @keyframes secretpop { 0% { transform: scale(.85); opacity: 0; } 70% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); } }
 /* 薬味そろえ */
 .m3board { position: relative; margin: 0 auto; touch-action: none; border-radius: 12px; background: var(--belt); overflow: hidden; }
-.m3cell { position: absolute; left: 0; top: 0; padding: 2px; transition: transform .17s ease-in; will-change: transform; }
+.m3cell { position: absolute; left: 0; top: 0; padding: 2px; transition: transform .14s ease-out; will-change: transform; }
 .m3cell .art { display: block; width: 100%; height: 100%; padding: 3px; border-radius: 10px; background: var(--bg); transition: transform .15s, opacity .2s; }
 .m3cell.sel .art { box-shadow: 0 0 0 3px var(--accent); transform: scale(1.08); }
 .m3cell.gone .art { transform: scale(1.4); opacity: 0; }
@@ -299,6 +299,7 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 .mline.warn { border-top-color: var(--bad); animation: mblink .3s infinite alternate; }
 @keyframes mblink { to { opacity: .3; } }
 .mtop { margin: 0 0 6px; }
+.mguide { position: absolute; left: -1px; top: 0; width: 0; height: 100%; border-left: 2px dashed rgba(255,255,255,.75); filter: drop-shadow(0 0 1px rgba(0,0,0,.35)); pointer-events: none; will-change: transform; }
 .mladder { display: flex; justify-content: center; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
 /* わんこダッシュ */
 .field.rfield { height: min(420px, 56vh); background: var(--belt); border: 0; }
@@ -3203,7 +3204,7 @@ var match_default = {
         paint(n);
         n.el.classList.add("born");
       }
-      await sleep(220);
+      await sleep(180);
       if (!running) return false;
       for (const p of set) p.el.remove();
       for (let c = 0; c < N; c++) {
@@ -3279,7 +3280,7 @@ var match_default = {
       swapData(a, b);
       place(a, a.r, a.c);
       place(b, b.r, b.c);
-      await sleep(170);
+      await sleep(130);
       if (!running) return;
       if (a.k === "dog" || b.k === "dog") {
         const dog = a.k === "dog" ? a : b, other = dog === a ? b : a;
@@ -3299,7 +3300,7 @@ var match_default = {
         swapData(a, b);
         place(a, a.r, a.c);
         place(b, b.r, b.c);
-        await sleep(170);
+        await sleep(130);
       } else await resolve([a, b]);
       busy = false;
     };
@@ -3311,7 +3312,7 @@ var match_default = {
     let down = null;
     board.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (busy || !running) return;
+      if (!running) return;
       const p = cellAt(e);
       if (!p) return;
       down = { p, x: e.clientX, y: e.clientY, moved: false };
@@ -3323,7 +3324,12 @@ var match_default = {
     board.addEventListener("pointermove", (e) => {
       if (!down || down.moved || busy) return;
       const dx = e.clientX - down.x, dy = e.clientY - down.y;
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < S * 0.35) return;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < S * 0.22) return;
+      if (grid[down.p.r]?.[down.p.c] !== down.p) {
+        const q = cellAt({ clientX: down.x, clientY: down.y });
+        if (!q) return;
+        down.p = q;
+      }
       down.moved = true;
       const p = down.p;
       const [r2, c2] = Math.abs(dx) > Math.abs(dy) ? [p.r, p.c + Math.sign(dx)] : [p.r + Math.sign(dy), p.c];
@@ -3333,7 +3339,7 @@ var match_default = {
       if (!down) return;
       const { p, moved } = down;
       down = null;
-      if (moved || busy) return;
+      if (moved || busy || grid[p.r]?.[p.c] !== p) return;
       if (sel && sel !== p && Math.abs(sel.r - p.r) + Math.abs(sel.c - p.c) === 1) trySwap(sel, p);
       else select(sel === p ? null : p);
     });
@@ -3405,7 +3411,8 @@ var merge_default = {
     const nextImg = h("span", { class: "mnext" });
     const box = h("div", { class: "field mbox" });
     const line = h("div", { class: "mline" });
-    box.append(line);
+    const guide = h("div", { class: "mguide" });
+    box.append(guide, line);
     const ladder = h("div", { class: "mladder", "aria-hidden": "true" }, MERGE_TIERS.map((tr, i) => stackBall(i, "lad")));
     stage.append(h("div", { class: "row mtop" }, h("span", { class: "muted" }, t("g.merge.next")), nextImg), box, ladder, h("p", { class: "muted center" }, t("g.merge.hint")));
     let W = box.clientWidth || 340, HT = box.clientHeight || 420;
@@ -3439,13 +3446,20 @@ var merge_default = {
       hand.el.classList.add("hand");
       draw(hand);
     };
+    let wantDrop = false;
     const drop = () => {
-      if (!running || !hand || cool > 0) return;
+      if (!running) return;
+      // 次のお椀が出る前に離した時も、出た瞬間に落とす
+      if (!hand || cool > 0) {
+        wantDrop = !capped;
+        return;
+      }
       const b = { ...hand, vx: 0, vy: 0, age: 0, over: 0, dead: false };
       b.el.classList.remove("hand");
       bodies.push(b);
       hand = null;
-      cool = 0.45;
+      cool = 0.3;
+      wantDrop = false;
       sounds.tick();
     };
     const pop = (x, y, text) => {
@@ -3555,7 +3569,13 @@ var merge_default = {
       const dt = Math.min(0.033, (ts - (last || ts)) / 1e3);
       last = ts;
       cool -= dt;
-      if (!hand && cool <= 0) newHand();
+      if (!hand && cool <= 0 && !capped) {
+        newHand();
+        if (wantDrop) {
+          hand.x = Math.max(hand.r, Math.min(W - hand.r, aimX));
+          drop();
+        }
+      }
       for (let k = 0; k < 4; k++) step(dt / 4);
       let worst = 0;
       for (const b of bodies) {
@@ -3575,7 +3595,9 @@ var merge_default = {
       if (hand) {
         hand.x = Math.max(hand.r, Math.min(W - hand.r, aimX));
         draw(hand);
+        guide.style.transform = `translate3d(${hand.x.toFixed(1)}px, ${(hand.y + hand.r).toFixed(1)}px, 0)`;
       }
+      guide.hidden = !hand;
       raf = requestAnimationFrame(frame);
     };
     const aim = (e) => {
@@ -3851,7 +3873,7 @@ var run_default = {
     });
     field.addEventListener("pointermove", (e) => {
       if (sx === null) return;
-      if (Math.abs(e.clientX - sx) > 24) {
+      if (Math.abs(e.clientX - sx) > 14) {
         move(Math.sign(e.clientX - sx));
         sx = e.clientX;
         swiped = true;
@@ -3979,7 +4001,20 @@ var blocks_default = {
       const [rh, cw] = dims(drag.p.shape);
       const lift = e.pointerType === "mouse" ? 0 : S * 1.8;
       const x = e.clientX - rect.left - cw * S / 2, y = e.clientY - lift - rect.top - rh * S / 2;
-      return [Math.round(y / S), Math.round(x / S), e.clientX - cw * S / 2, e.clientY - lift - rh * S / 2];
+      const fr = y / S, fc = x / S;
+      let r0 = Math.round(fr), c0 = Math.round(fc);
+      if (!fits(drag.p.shape, r0, c0)) {
+        let best = null, bd = 0.85 * 0.85;
+        for (let r = Math.floor(fr) - 1; r <= Math.ceil(fr) + 1; r++) for (let c = Math.floor(fc) - 1; c <= Math.ceil(fc) + 1; c++) {
+          const d = (r - fr) ** 2 + (c - fc) ** 2;
+          if (d < bd && fits(drag.p.shape, r, c)) {
+            bd = d;
+            best = [r, c];
+          }
+        }
+        if (best) [r0, c0] = best;
+      }
+      return [r0, c0, e.clientX - cw * S / 2, e.clientY - lift - rh * S / 2];
     };
     // 置いたら消える列を調べる
     const linesIf = (shape, r0, c0) => {
@@ -4449,15 +4484,25 @@ var chain_default = {
       drawSkills();
     };
     const tryAdd = (x, y) => {
-      const b = ballNear(x, y);
-      if (!b || b.dog || b.glow) return;
-      if (b === chain[chain.length - 2]) {
+      // 1つ前の丸に戻ったら、つなぎを1つ取り消す（ここはせまく見る）
+      const back = chain[chain.length - 2];
+      if (back && (back.x - x) ** 2 + (back.y - y) ** 2 < (back.r * 0.95) ** 2) {
         chain.pop().el.classList.remove("on");
         return;
       }
+      // つなげられる丸だけを、少し広めに探す
+      let b = null, bd = Infinity;
+      for (const m of balls) {
+        if (m.dead || m.dog || m.glow || m.k !== chain[0].k || chain.includes(m)) continue;
+        const d = (m.x - x) ** 2 + (m.y - y) ** 2;
+        if (d < (m.r * 1.3) ** 2 && d < bd) {
+          bd = d;
+          b = m;
+        }
+      }
+      if (!b) return;
       const lastB = chain[chain.length - 1];
-      if (chain.includes(b) || b.k !== chain[0].k) return;
-      const near = (p, q) => (p.x - q.x) ** 2 + (p.y - q.y) ** 2 <= ((p.r + q.r) * 1.5) ** 2;
+      const near = (p, q) => (p.x - q.x) ** 2 + (p.y - q.y) ** 2 <= ((p.r + q.r) * 1.6) ** 2;
       if (!near(b, lastB)) {
         // 指が速くて間の丸を飛ばした時は、間の同じ丸を自動でつなぐ
         const mid = balls.find((m) => m !== b && !m.dog && !m.glow && m.k === b.k && !chain.includes(m) && near(m, lastB) && near(m, b));
@@ -4496,12 +4541,16 @@ var chain_default = {
     });
     box.addEventListener("pointermove", (e) => {
       if (!drawing) return;
-      const [x, y] = local(e);
-      // 指が速く動いても途中の丸を取りこぼさない
-      const [px, py] = finger;
-      const dist = Math.hypot(x - px, y - py), n = Math.max(1, Math.ceil(dist / (R0 * 0.5)));
-      for (let i = 1; i <= n; i++) tryAdd(px + (x - px) * i / n, py + (y - py) * i / n);
-      finger = [x, y];
+      // 指の細かい動きも全部拾う
+      const evs = e.getCoalescedEvents?.() || [];
+      for (const ev of evs.length ? evs : [e]) {
+        const [x, y] = local(ev);
+        // 指が速く動いても途中の丸を取りこぼさない
+        const [px, py] = finger;
+        const dist = Math.hypot(x - px, y - py), n = Math.max(1, Math.ceil(dist / (R0 * 0.5)));
+        for (let i = 1; i <= n; i++) tryAdd(px + (x - px) * i / n, py + (y - py) * i / n);
+        finger = [x, y];
+      }
       drawLine();
     });
     const release = () => {

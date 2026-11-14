@@ -2999,6 +2999,7 @@ var MATCH_BG = { negi: "#86efac", ume: "#fda4af", nori: "#93c5fd", wasabi: "#5ee
 var match_default = {
   id: "match",
   pausable: true,
+  normalBase: true,
   emoji: "🧅",
   better: "high",
   unit: "unit.pieces",
@@ -3392,6 +3393,7 @@ var stackBall = (tier, cls = "") => h("span", { class: `mball ${cls}`, style: `b
 var merge_default = {
   id: "merge",
   pausable: true,
+  normalBase: true,
   emoji: "🥣",
   better: "high",
   unit: "unit.points",
@@ -3629,6 +3631,7 @@ var merge_default = {
 var run_default = {
   id: "run",
   pausable: true,
+  normalBase: true,
   emoji: "🐶",
   better: "high",
   unit: "unit.bowls",
@@ -3892,6 +3895,7 @@ var BLOCK_LOOKS = [{ art: "bowl", bg: "#fdba74" }, { art: "soba", bg: "#fde68a" 
 var blocks_default = {
   id: "blocks",
   pausable: true,
+  normalBase: true,
   emoji: "🥣",
   better: "high",
   unit: "unit.points",
@@ -4205,6 +4209,7 @@ var CHAIN_FEVER = 10;
 var chain_default = {
   id: "chain",
   pausable: true,
+  normalBase: true,
   emoji: "🍜",
   better: "high",
   unit: "unit.points",
@@ -4628,7 +4633,24 @@ function levelNote(g) {
   return h("p", { class: "muted lvnote" }, t(LEVEL_NOTE_GAMES[g.id] ? `lv.${g.id}.${gameLevel}` : `lv.note.${gameLevel}`));
 }
 var LEVEL_MAX_POINTS = { kids: 3, normal: 5, pro: 10 };
+function normalBasePoints(g, score) {
+  const th = g.thresholds;
+  const steps = [Math.max(1, Math.ceil(th[1] / 2)), th[1], th[2], th[3], th[4]];
+  let n = 0;
+  for (let i = 0; i < 5; i++) if (score >= steps[i]) n = i + 1;
+  if (gameLevel === "kids") return Math.min(3, n);
+  if (gameLevel === "pro") {
+    let p = n * 2;
+    if (n < 5) {
+      const lo = n === 0 ? 0 : steps[n - 1], hi = steps[n];
+      if (score >= (lo + hi) / 2) p += 1;
+    }
+    return Math.min(10, p);
+  }
+  return n;
+}
 function pointsFor(g, score) {
+  if (g.normalBase) return normalBasePoints(g, score);
   const th = g.levelThresholds?.[gameLevel] || g.thresholds;
   const low = g.better === "low";
   const steps = [low ? Math.round(th[1] * 1.5) : Math.max(1, Math.ceil(th[1] / 2)), th[1], th[2], th[3], th[4]];

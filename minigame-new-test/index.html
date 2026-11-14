@@ -420,6 +420,7 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 .pausecover { position: absolute; inset: 0; z-index: 60; display: grid; place-content: center; justify-items: center; gap: 14px; background: var(--panel); border-radius: 14px; text-align: center; }
 .pausecover[hidden] { display: none; }
 .pausecover p { margin: 0; font-size: 22px; font-weight: 800; }
+.capbanner { position: absolute; left: 0; right: 0; top: 38%; z-index: 55; text-align: center; font: 900 40px/1 -apple-system, "Hiragino Sans", sans-serif; color: #fde047; text-shadow: 0 3px 0 var(--accent-ink), 0 0 16px rgba(0,0,0,.5); animation: bkban 1.3s ease-out forwards; pointer-events: none; }
 </style>
 
 <main class="wrap">
@@ -516,6 +517,7 @@ var DICT = {
   "gh.points": { ja: "点数", en: "Points" },
   "gh.timeUsed": { ja: "時間", en: "Time" },
   "gh.pairs": { ja: "そろった組", en: "Pairs" },
+  "g.cap": { ja: "カンスト！", en: "MAX SCORE!" },
   "gh.cleared": { ja: "消した数", en: "Cleared" },
   "unit.pieces": { ja: "{n}個", en: "{n} pieces" },
   "g.match.name": { ja: "YAKUMI POP", en: "YAKUMI POP" },
@@ -2983,6 +2985,13 @@ var chop_default = {
 };
 
 // game/hub.js
+// カンスト（点数の上限）
+var CAP_POINTS = 99999, CAP_COUNT = 9999;
+function capReached(stage) {
+  stage.append(h("div", { class: "capbanner" }, t("g.cap")));
+  sounds.end();
+  buzz(80);
+}
 
 // game/games/match.js（薬味そろえ：並べて消す）
 var MATCH_KINDS = ["negi", "ume", "nori", "wasabi", "tenkasu", "nametake", "shichimi", "goma"];
@@ -2993,7 +3002,7 @@ var match_default = {
   emoji: "🧅",
   better: "high",
   unit: "unit.pieces",
-  thresholds: [0, 25, 60, 100, 150],
+  thresholds: [0, 16, 30, 50, 100],
   start(stage, { finish, onCleanup }) {
     const SEC = lv(40, 30, 25);
     const H = hud(stage, "gh.time", "gh.cleared");
@@ -3002,7 +3011,7 @@ var match_default = {
     const board = h("div", { class: "m3board" });
     const msg = h("p", { class: "muted center m3msg" }, t("g.match.hint"));
     stage.append(board, msg);
-    let S = 40, score = 0, running = true, busy = false, sel = null;
+    let S = 40, score = 0, running = true, busy = false, sel = null, capped = false;
     const grid = [];
     const timer = countdown(SEC, (l) => {
       H.left(Math.ceil(l));
@@ -3172,7 +3181,13 @@ var match_default = {
       for (const n of keep) set.delete(n);
       expand(set, keep);
       score += set.size;
-      H.right(score);
+      if (score >= CAP_COUNT && !capped) {
+        capped = true;
+        timer.stop();
+        capReached(stage);
+        setTimeout(() => end(), 1200);
+      }
+      H.right(Math.min(score, CAP_COUNT));
       const plus = Math.max(0, Math.round(Math.min(2.5, set.size * lv(0.5, 0.35, 0.25) * label.chain, SEC * 1.5 - timer.left) * 10) / 10);
       timer.add(plus);
       label.chain > 1 || set.size > 5 ? sounds.great() : sounds.good();
@@ -3326,7 +3341,7 @@ var match_default = {
     const end = () => {
       if (!running) return;
       running = false;
-      finish(score);
+      finish(Math.min(score, CAP_COUNT));
     };
     onCleanup(() => {
       running = false;
@@ -3380,10 +3395,11 @@ var merge_default = {
   emoji: "🥣",
   better: "high",
   unit: "unit.points",
-  thresholds: [0, 250, 500, 800, 1200],
+  thresholds: [0, 150, 300, 450, 1000],
   start(stage, { finish, onCleanup }) {
-    const SEC = lv(120, 90, 75);
-    const H = hud(stage, "gh.time", "gh.points");
+    const scoreEl = h("strong", { class: "num" }, "0");
+    stage.append(h("div", { class: "hud" }, h("div", {}, h("span", { class: "muted" }, t("gh.points")), " ", scoreEl)));
+    const H = { right: (v) => scoreEl.textContent = v };
     const nextImg = h("span", { class: "mnext" });
     const box = h("div", { class: "field mbox" });
     const line = h("div", { class: "mline" });
@@ -3395,14 +3411,8 @@ var merge_default = {
     line.style.top = `${LINE()}px`;
     const maxStart = lv(3, 4, 4);
     const pick = () => randInt(0, maxStart);
-    let score = 0, running = true, raf = 0, last = 0, bodies = [], hand = null, next = pick(), aimX = W / 2, cool = 0, danger = 0;
-    const timer = countdown(SEC, (l) => {
-      H.left(Math.ceil(l));
-      H.bar(l / SEC);
-    }, () => end());
-    H.left(SEC);
-    H.bar(1);
-    H.right(0);
+    let score = 0, running = true, raf = 0, last = 0, bodies = [], hand = null, next = pick(), aimX = W / 2, cool = 0, danger = 0, capped = false;
+    const timer = { stop() {} };
     const rOf = (tier) => MERGE_TIERS[tier].r * W;
     const ball = (tier) => {
       const r = rOf(tier);
@@ -3464,7 +3474,14 @@ var merge_default = {
         tier >= 6 ? sounds.great() : sounds.good();
         buzz(15);
       }
-      H.right(score);
+      if (score >= CAP_POINTS && !capped) {
+        capped = true;
+        hand = null;
+        cool = 99;
+        capReached(stage);
+        setTimeout(() => end(), 1200);
+      }
+      H.right(Math.min(score, CAP_POINTS));
     };
     const step = (dt) => {
       const G = HT * 3.2;
@@ -3597,7 +3614,7 @@ var merge_default = {
     const end = () => {
       if (!running) return;
       running = false;
-      finish(score);
+      finish(Math.min(score, CAP_POINTS));
     };
     onCleanup(() => {
       running = false;
@@ -3615,7 +3632,7 @@ var run_default = {
   emoji: "🐶",
   better: "high",
   unit: "unit.bowls",
-  thresholds: [0, 10, 25, 45, 70],
+  thresholds: [0, 6, 12, 20, 45],
   start(stage, { finish, onCleanup }) {
     const LIVES = lv(5, 3, 2);
     const score = h("strong", { class: "num" }, "0");
@@ -3715,6 +3732,12 @@ var run_default = {
         n > 1 ? sounds.great() : sounds.good();
       }
       showStreak();
+      if (got >= CAP_COUNT) {
+        got = CAP_COUNT;
+        score.textContent = got;
+        capReached(stage);
+        end();
+      }
     };
     const frame = (ts) => {
       if (!running) return;
@@ -3872,7 +3895,7 @@ var blocks_default = {
   emoji: "🥣",
   better: "high",
   unit: "unit.points",
-  thresholds: [0, 80, 200, 400, 700],
+  thresholds: [0, 40, 80, 150, 400],
   start(stage, { finish, onCleanup }) {
     const N = 8;
     const score = h("strong", { class: "num" }, "0");
@@ -4146,6 +4169,14 @@ var blocks_default = {
         void board.offsetWidth;
         if (lines > 2 || empty) board.classList.add("shake");
       } else streak = 0;
+      if (pts >= CAP_POINTS) {
+        pts = CAP_POINTS;
+        shown(pts);
+        running = false;
+        capReached(stage);
+        setTimeout(() => finish(pts), 1300);
+        return;
+      }
       shown(pts);
       if (pieces.every((q) => q.used)) deal();
       else drawTray();
@@ -4177,7 +4208,7 @@ var chain_default = {
   emoji: "🍜",
   better: "high",
   unit: "unit.points",
-  thresholds: [0, 120, 300, 550, 900],
+  thresholds: [0, 60, 150, 250, 600],
   start(stage, { finish, onCleanup }) {
     const SEC = lv(75, 60, 50);
     const H = hud(stage, "gh.time", "gh.points");
@@ -4197,7 +4228,18 @@ var chain_default = {
     const R0 = W * 0.075;
     const COUNT = Math.round(W * HT / (R0 * R0 * 4.6));
     let pts = 0, running = true, raf = 0, last = 0, balls = [], chain = [], drawing = false, finger = null;
-    let used = /* @__PURE__ */ new Set(), fever = 0, feverKinds = null, dogOut = false;
+    let used = /* @__PURE__ */ new Set(), fever = 0, feverKinds = null, dogOut = false, capped = false;
+    const capCheck = () => {
+      if (pts >= CAP_POINTS && !capped) {
+        capped = true;
+        pts = CAP_POINTS;
+        H.right(pts);
+        timer.stop();
+        drawing = false;
+        capReached(stage);
+        setTimeout(() => end(), 1200);
+      }
+    };
     const timer = countdown(SEC, (l) => {
       H.left(Math.ceil(l));
       H.bar(l / SEC);
@@ -4355,7 +4397,8 @@ var chain_default = {
       const gain = 10 + hit.length * 4;
       pts += gain;
       H.right(pts);
-      timer.add(3);
+      capCheck();
+      if (!capped) timer.add(3);
       pop(`${t(`g.chain.sk.${sk}`)} +${gain}  ${t("g.chain.plus3")}`, g.x, g.y);
       shake();
       sounds.great();
@@ -4423,7 +4466,7 @@ var chain_default = {
     };
     box.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (!running) return;
+      if (!running || capped) return;
       const [x, y] = local(e);
       const b = ballNear(x, y, 1.15);
       if (!b) return;
@@ -4469,6 +4512,9 @@ var chain_default = {
       const gain = n * (n + 1) / 2;
       pts += gain;
       H.right(pts);
+      capCheck();
+      // 4個以上つなぐと、少し時間が増える
+      if (n >= 4 && !capped) timer.add(Math.min((n - 3) * 0.5, Math.max(0, SEC - timer.left)));
       const tail = list[n - 1];
       pop(`+${gain}`, tail.x, tail.y);
       n >= CHAIN_GLOW ? sounds.great() : sounds.good();
@@ -4485,7 +4531,7 @@ var chain_default = {
     const end = () => {
       if (!running) return;
       running = false;
-      finish(pts);
+      finish(Math.min(pts, CAP_POINTS));
     };
     onCleanup(() => {
       running = false;

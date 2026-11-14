@@ -414,6 +414,12 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 .bkboard.over .bktile .art { filter: grayscale(.85) brightness(.8); transition: filter .6s; }
 .num.bump { animation: bump .25s ease-out; display: inline-block; }
 @keyframes bump { 50% { transform: scale(1.25); } }
+/* 一時停止 */
+.playbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.stage.pausable { position: relative; }
+.pausecover { position: absolute; inset: 0; z-index: 60; display: grid; place-content: center; justify-items: center; gap: 14px; background: var(--panel); border-radius: 14px; text-align: center; }
+.pausecover[hidden] { display: none; }
+.pausecover p { margin: 0; font-size: 22px; font-weight: 800; }
 </style>
 
 <main class="wrap">
@@ -551,6 +557,9 @@ var DICT = {
   "g.chain.sk.bomb": { ja: "ドカン", en: "Blast" },
   "g.chain.sk.scatter": { ja: "あちこち", en: "Scatter" },
   "g.chain.hint": { ja: "同じ絵を指でなぞってつなぐ", en: "Trace matching pieces with your finger" },
+  "gh.pause": { ja: "一時停止", en: "Pause" },
+  "gh.resume": { ja: "再開する", en: "Resume" },
+  "gh.paused": { ja: "一時停止中", en: "Paused" },
   "gh.question": { ja: "問題", en: "Question" },
   "gh.correct": { ja: "正解", en: "Correct" },
   "gh.taps": { ja: "回数", en: "Taps" },
@@ -1126,6 +1135,7 @@ function countdown(sec, onTick, onEnd) {
   let left = sec;
   let done = false;
   const id = setInterval(() => {
+    if (gamePaused) return;
     left = Math.max(0, left - 0.1);
     onTick(left);
     if (left <= 0 && !done) {
@@ -2979,6 +2989,7 @@ var MATCH_KINDS = ["negi", "ume", "nori", "wasabi", "tenkasu", "nametake", "shic
 var MATCH_BG = { negi: "#86efac", ume: "#fda4af", nori: "#93c5fd", wasabi: "#5eead4", tenkasu: "#fde047", nametake: "#fdba74", shichimi: "#d8b4fe", goma: "#e7e5e4" };
 var match_default = {
   id: "match",
+  pausable: true,
   emoji: "🧅",
   better: "high",
   unit: "unit.pieces",
@@ -3365,6 +3376,7 @@ function bowlStack(n) {
 var stackBall = (tier, cls = "") => h("span", { class: `mball ${cls}`, style: `background:${MERGE_TIERS[tier].bg}` }, bowlStack(MERGE_TIERS[tier].n), h("b", { class: "mnum" }, MERGE_TIERS[tier].n));
 var merge_default = {
   id: "merge",
+  pausable: true,
   emoji: "🥣",
   better: "high",
   unit: "unit.points",
@@ -3516,6 +3528,11 @@ var merge_default = {
     };
     const frame = (ts) => {
       if (!running) return;
+      if (gamePaused) {
+        last = ts;
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       const dt = Math.min(0.033, (ts - (last || ts)) / 1e3);
       last = ts;
       cool -= dt;
@@ -3594,6 +3611,7 @@ var merge_default = {
 // game/games/run.js（わんこダッシュ：よけて走る）
 var run_default = {
   id: "run",
+  pausable: true,
   emoji: "🐶",
   better: "high",
   unit: "unit.bowls",
@@ -3700,6 +3718,11 @@ var run_default = {
     };
     const frame = (ts) => {
       if (!running) return;
+      if (gamePaused) {
+        last = ts;
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       const dt = Math.min(0.05, (ts - (last || ts)) / 1e3);
       last = ts;
       elapsed += dt;
@@ -3845,6 +3868,7 @@ var BLOCK_SHAPES = {
 var BLOCK_LOOKS = [{ art: "bowl", bg: "#fdba74" }, { art: "soba", bg: "#fde68a" }, { art: "bowl", bg: "#93c5fd" }, { art: "soba", bg: "#86efac" }, { art: "bowl", bg: "#fda4af" }, { art: "soba", bg: "#c4b5fd" }];
 var blocks_default = {
   id: "blocks",
+  pausable: true,
   emoji: "🥣",
   better: "high",
   unit: "unit.points",
@@ -4149,6 +4173,7 @@ var CHAIN_GLOW = 6;
 var CHAIN_FEVER = 10;
 var chain_default = {
   id: "chain",
+  pausable: true,
   emoji: "🍜",
   better: "high",
   unit: "unit.points",
@@ -4264,6 +4289,11 @@ var chain_default = {
     };
     const frame = (ts) => {
       if (!running) return;
+      if (gamePaused) {
+        last = ts;
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       const dt = Math.min(0.033, (ts - (last || ts)) / 1e3);
       last = ts;
       for (let k = 0; k < 4; k++) step(dt / 4);
@@ -4753,7 +4783,11 @@ function realBox() {
     h("a", { href: "https://kurukuruwanko.com", target: "_blank", rel: "noopener" }, t("game.site"))
   );
 }
+var gamePaused = false;
+var pauseNow = null;
 function stop() {
+  gamePaused = false;
+  pauseNow = null;
   $("#lang").disabled = false;
   if (!current) return;
   current.cleanups.forEach((f) => {
@@ -4791,7 +4825,20 @@ function begin(g) {
   view = { name: "playing", g };
   const stage = h("div", { class: "panel stage" });
   const back = h("button", { type: "button", class: "ghost small back", onclick: renderHub }, `← ${t("gh.back")}`);
-  $("#play").replaceChildren(back, stage);
+  if (g.pausable) {
+    const cover = h("div", { class: "pausecover", hidden: true }, h("p", {}, t("gh.paused")), h("button", { type: "button", class: "big", onclick: () => setPause(false) }, t("gh.resume")));
+    const pbtn = h("button", { type: "button", class: "ghost small back pausebtn", onclick: () => setPause(true) }, t("gh.pause"));
+    const setPause = (on) => {
+      gamePaused = on;
+      cover.hidden = !on;
+      pbtn.disabled = on;
+      if (!on) sounds.tick();
+    };
+    pauseNow = () => setPause(true);
+    stage.classList.add("pausable");
+    stage.append(cover);
+    $("#play").replaceChildren(h("div", { class: "playbar" }, back, pbtn), stage);
+  } else $("#play").replaceChildren(back, stage);
   const cleanups = [];
   current = { game: g, cleanups };
   $("#lang").disabled = true;
@@ -4868,7 +4915,10 @@ function renderResult(g, score, { best, isNew, gotStamp, stamps, pts, unlocked =
   again.focus();
 }
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden && current && view.name !== "used") renderHub();
+  if (document.hidden && current && view.name !== "used") {
+    if (pauseNow && view.name === "playing") pauseNow();
+    else renderHub();
+  }
 });
 $("#lang").addEventListener("click", () => {
   setLang(getLang() === "ja" ? "en" : "ja");

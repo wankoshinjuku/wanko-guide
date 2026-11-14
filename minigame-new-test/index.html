@@ -422,6 +422,12 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 .pausecover[hidden] { display: none; }
 .pausecover p { margin: 0; font-size: 22px; font-weight: 800; }
 .capbanner { position: absolute; left: 0; right: 0; top: 38%; z-index: 55; text-align: center; font: 900 40px/1 -apple-system, "Hiragino Sans", sans-serif; color: #fde047; text-shadow: 0 3px 0 var(--accent-ink), 0 0 16px rgba(0,0,0,.5); animation: bkban 1.3s ease-out forwards; pointer-events: none; }
+
+/* ズルズル シェイク */
+.cshakerow { justify-content: center; margin-top: 8px; }
+.cshakebtn { min-width: 9em; touch-action: none; }
+.field.cbox.jiggle { animation: cjig .35s; }
+@keyframes cjig { 20% { transform: translateX(-6px) rotate(-1deg); } 40% { transform: translateX(6px) rotate(1deg); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 </style>
 
 <main class="wrap">
@@ -559,6 +565,7 @@ var DICT = {
   "g.chain.sk.col": { ja: "縦一列", en: "Column" },
   "g.chain.sk.bomb": { ja: "ドカン", en: "Blast" },
   "g.chain.sk.scatter": { ja: "あちこち", en: "Scatter" },
+  "g.chain.shake": { ja: "シェイク", en: "Shake" },
   "g.chain.hint": { ja: "同じ絵を指でなぞってつなぐ", en: "Trace matching pieces with your finger" },
   "gh.pause": { ja: "一時停止", en: "Pause" },
   "gh.resume": { ja: "再開する", en: "Resume" },
@@ -4263,7 +4270,9 @@ var chain_default = {
     box.append(cnt, fev);
     const kinds = CHAIN_KINDS.slice(0, lv(4, 5, 5));
     const skillRow = h("div", { class: "cskills" });
-    stage.append(box, skillRow, h("p", { class: "muted center" }, t("g.chain.hint")));
+    const shakeBtn = h("button", { type: "button", class: "ghost small cshakebtn" }, t("g.chain.shake"));
+    noLongPress(shakeBtn);
+    stage.append(box, skillRow, h("div", { class: "row cshakerow" }, shakeBtn), h("p", { class: "muted center" }, t("g.chain.hint")));
     const W = box.clientWidth || 340, HT = box.clientHeight || 420;
     const R0 = W * 0.075;
     const COUNT = Math.round(W * HT / (R0 * R0 * 4.6));
@@ -4582,6 +4591,53 @@ var chain_default = {
     };
     box.addEventListener("pointerup", release);
     box.addEventListener("pointercancel", release);
+    // シェイク：丸をゆらして並びを変える（ボタン、またはスマホを振る）
+    let shakeCool = 0;
+    const doShake = (dx = 0, dy = 0, power = 1) => {
+      if (!running || capped || gamePaused || drawing) return;
+      const now = performance.now();
+      if (now < shakeCool) return;
+      shakeCool = now + 450;
+      const k = HT * 1.4 * Math.min(1.6, power);
+      for (const b of balls) {
+        if (b.y < 0) continue;
+        b.vx += (dx * 0.9 + rand(-0.6, 0.6)) * k;
+        b.vy += (dy * 0.6 - rand(0.5, 1.1)) * k;
+      }
+      box.classList.remove("jiggle");
+      void box.offsetWidth;
+      box.classList.add("jiggle");
+      sounds.tick();
+      buzz(30);
+    };
+    shakeBtn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      doShake(rand(-1, 1), 0, 1);
+    });
+    // iPhone は指を離した時でないと「振る」の許可を聞けない
+    shakeBtn.addEventListener("pointerup", () => askMotion());
+    // スマホを振った時（振った向きと反対に丸が寄る＝中身がゆれる感じ）
+    const onMotion = (e) => {
+      const a = e.acceleration;
+      if (!a || a.x == null) return;
+      const m = Math.hypot(a.x, a.y || 0, a.z || 0);
+      if (m < 13) return;
+      const ax = -a.x / m, ay = (a.y || 0) / m;
+      doShake(ax, ay, m / 18);
+    };
+    // 許可の要らない機種（Android など）は最初から振るだけで使える
+    window.addEventListener("devicemotion", onMotion);
+    // iPhone は1度だけ「動きと方向」の許可を聞く（シェイクのボタンを押した時）
+    let asked = false;
+    const askMotion = () => {
+      const D = window.DeviceMotionEvent;
+      if (asked || !D || typeof D.requestPermission !== "function") return;
+      asked = true;
+      try {
+        D.requestPermission().catch(() => {});
+      } catch {
+      }
+    };
     const end = () => {
       if (!running) return;
       running = false;
@@ -4591,6 +4647,7 @@ var chain_default = {
       running = false;
       timer.stop();
       cancelAnimationFrame(raf);
+      window.removeEventListener("devicemotion", onMotion);
     });
   }
 };

@@ -333,7 +333,7 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 .bkboard { position: relative; margin: 0 auto; border-radius: 12px; background: var(--belt); overflow: hidden; touch-action: none; }
 .bkslot { position: absolute; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
 .bkslot.ok { background: rgba(134,239,172,.45); }
-.bkslot.ng { background: rgba(248,113,113,.35); }
+.bkslot.ng { background: rgba(248,113,113,.55); }
 .bktile { position: absolute; padding: 2px; }
 .bktile .art { display: block; width: 100%; height: 100%; border-radius: 7px; background: var(--bg); padding: 2px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
 .bktile.put .art { animation: mgrow .2s ease-out; }
@@ -397,7 +397,10 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 /* お椀ブロック（作り込み） */
 .bkslot.line { background: rgba(253,224,71,.35); }
 .bkslot.flash { background: rgba(255,255,255,.7); transition: background .3s; }
-.bkpreview { position: absolute; inset: 0; pointer-events: none; opacity: .45; }
+.bkpreview { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.bkpreview .bktile .art { box-shadow: 0 0 0 3px #fff, 0 0 12px 3px rgba(255,255,255,.8); animation: bkpv .5s ease-in-out infinite alternate; }
+@keyframes bkpv { to { filter: brightness(1.15); transform: scale(.94); } }
+.bkghost.snapped { opacity: 0; }
 .bktile.willgo .art { box-shadow: 0 0 0 2px #fde047, 0 0 10px 2px rgba(253,224,71,.9); }
 .bktile.gold .art { box-shadow: inset 0 -2px 0 rgba(0,0,0,.15), 0 0 8px 2px rgba(251,191,36,.95); animation: cglow .6s infinite alternate; }
 .bkslotp { touch-action: none; cursor: grab; transition: transform .12s; }
@@ -4004,7 +4007,11 @@ var blocks_default = {
       const key = `${r0},${c0}`;
       if (drag.key !== key) {
         drag.key = key;
-        hint(r0, c0, fits(drag.p.shape, r0, c0));
+        const ok = fits(drag.p.shape, r0, c0);
+        hint(r0, c0, ok);
+        // 置ける場所では、指の上のブロックを消して、盤の上にくっきり出す
+        ghost.classList.toggle("snapped", ok);
+        if (ok) sounds.tick();
       }
       drag.at = [r0, c0];
     };

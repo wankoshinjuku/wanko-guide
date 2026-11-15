@@ -429,6 +429,10 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 
 /* 画面の端で引っぱった時に、ページごと動かない */
 html, body { overscroll-behavior: none; }
+
+/* ギブアップ */
+.playbtns { display: flex; gap: 8px; }
+.pausecover .giveyes { color: var(--bad, #b91c1c); border-color: currentColor; }
 </style>
 
 <main class="wrap">
@@ -569,6 +573,10 @@ var DICT = {
   "g.chain.shake": { ja: "シェイク", en: "Shake" },
   "g.chain.hint": { ja: "同じ絵を指でなぞってつなぐ", en: "Trace matching pieces with your finger" },
   "gh.pause": { ja: "一時停止", en: "Pause" },
+  "gh.giveup": { ja: "ギブアップ", en: "Give up" },
+  "gh.giveupQ": { ja: "ギブアップしますか？", en: "Give up now?" },
+  "gh.giveupYes": { ja: "ギブアップする", en: "Give up" },
+  "gh.giveupNo": { ja: "続ける", en: "Keep playing" },
   "gh.resume": { ja: "再開する", en: "Resume" },
   "gh.paused": { ja: "一時停止中", en: "Paused" },
   "gh.question": { ja: "問題", en: "Question" },
@@ -3364,6 +3372,7 @@ var match_default = {
     });
     board.addEventListener("pointercancel", () => down = null);
     window.addEventListener("resize", layout);
+    giveUpNow = () => end();
     const end = () => {
       if (!running) return;
       running = false;
@@ -3655,6 +3664,7 @@ var merge_default = {
     window.addEventListener("keydown", key);
     showNext();
     raf = requestAnimationFrame(frame);
+    giveUpNow = () => end();
     const end = () => {
       if (!running) return;
       running = false;
@@ -3915,6 +3925,7 @@ var run_default = {
       e.preventDefault();
     };
     window.addEventListener("keydown", key);
+    giveUpNow = () => end();
     const end = () => {
       if (!running) return;
       running = false;
@@ -4251,6 +4262,14 @@ var blocks_default = {
       }
     };
     deal();
+    // ギブアップ：その時の点数で終わる
+    giveUpNow = () => {
+      if (!running) return;
+      running = false;
+      stopListen();
+      drag = null;
+      finish(Math.min(pts, CAP_POINTS));
+    };
     onCleanup(() => {
       running = false;
       stopListen();
@@ -4654,6 +4673,7 @@ var chain_default = {
       } catch {
       }
     };
+    giveUpNow = () => end();
     const end = () => {
       if (!running) return;
       running = false;
@@ -4975,9 +4995,11 @@ function realBox() {
 }
 var gamePaused = false;
 var pauseNow = null;
+var giveUpNow = null;
 function stop() {
   gamePaused = false;
   pauseNow = null;
+  giveUpNow = null;
   $("#lang").disabled = false;
   if (!current) return;
   current.cleanups.forEach((f) => {
@@ -5016,18 +5038,31 @@ function begin(g) {
   const stage = h("div", { class: "panel stage" });
   const back = h("button", { type: "button", class: "ghost small back", onclick: renderHub }, `← ${t("gh.back")}`);
   if (g.pausable) {
-    const cover = h("div", { class: "pausecover", hidden: true }, h("p", {}, t("gh.paused")), h("button", { type: "button", class: "big", onclick: () => setPause(false) }, t("gh.resume")));
+    const msgP = h("p", {}, t("gh.paused"));
+    const resumeB = h("button", { type: "button", class: "big", onclick: () => setPause(false) }, t("gh.resume"));
+    const giveB = h("button", { type: "button", class: "ghost big giveyes", hidden: true, onclick: () => {
+      gamePaused = false;
+      cover.hidden = true;
+      const f = giveUpNow;
+      giveUpNow = null;
+      if (f) f();
+    } }, t("gh.giveupYes"));
+    const cover = h("div", { class: "pausecover", hidden: true }, msgP, giveB, resumeB);
     const pbtn = h("button", { type: "button", class: "ghost small back pausebtn", onclick: () => setPause(true) }, t("gh.pause"));
-    const setPause = (on) => {
+    const gbtn = h("button", { type: "button", class: "ghost small back givebtn", onclick: () => setPause(true, true) }, t("gh.giveup"));
+    const setPause = (on, give = false) => {
       gamePaused = on;
       cover.hidden = !on;
-      pbtn.disabled = on;
+      pbtn.disabled = gbtn.disabled = on;
+      msgP.textContent = t(give ? "gh.giveupQ" : "gh.paused");
+      giveB.hidden = !give;
+      resumeB.textContent = t(give ? "gh.giveupNo" : "gh.resume");
       if (!on) sounds.tick();
     };
     pauseNow = () => setPause(true);
     stage.classList.add("pausable");
     stage.append(cover);
-    $("#play").replaceChildren(h("div", { class: "playbar" }, back, pbtn), stage);
+    $("#play").replaceChildren(h("div", { class: "playbar" }, back, h("div", { class: "playbtns" }, pbtn, gbtn)), stage);
   } else $("#play").replaceChildren(back, stage);
   const cleanups = [];
   current = { game: g, cleanups };

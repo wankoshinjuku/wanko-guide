@@ -428,6 +428,9 @@ button.ticketbtn { white-space: normal; width: 100%; max-width: 100%; line-heigh
 .cshakebtn { min-width: 9em; touch-action: none; }
 .field.cbox.jiggle { animation: cjig .35s; }
 @keyframes cjig { 20% { transform: translateX(-6px) rotate(-1deg); } 40% { transform: translateX(6px) rotate(1deg); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+
+/* 画面の端で引っぱった時に、ページごと動かない */
+html, body { overscroll-behavior: none; }
 </style>
 
 <main class="wrap">
@@ -3002,6 +3005,16 @@ function capReached(stage) {
 }
 
 // game/games/match.js（薬味そろえ：並べて消す）
+// LINEの中で、なぞる指が「下にスワイプして画面をしまう」動きと取られないよう、遊ぶ場所の指の動きはゲームだけが使う
+var lockTouch = (...els) => {
+  const stop = (e) => {
+    if (e.cancelable) e.preventDefault();
+  };
+  for (const el of els) {
+    el.addEventListener("touchstart", stop, { passive: false });
+    el.addEventListener("touchmove", stop, { passive: false });
+  }
+};
 var MATCH_KINDS = ["negi", "ume", "nori", "wasabi", "tenkasu", "nametake", "shichimi", "goma"];
 var MATCH_BG = { negi: "#86efac", ume: "#fda4af", nori: "#93c5fd", wasabi: "#5eead4", tenkasu: "#fde047", nametake: "#fdba74", shichimi: "#d8b4fe", goma: "#e7e5e4" };
 var match_default = {
@@ -3018,6 +3031,7 @@ var match_default = {
     const N = lv(6, 7, 7);
     const kinds = MATCH_KINDS.slice(0, lv(5, 6, 7));
     const board = h("div", { class: "m3board" });
+    lockTouch(board);
     const msg = h("p", { class: "muted center m3msg" }, t("g.match.hint"));
     stage.append(board, msg);
     let S = 40, score = 0, running = true, busy = false, sel = null, capped = false;
@@ -3417,6 +3431,7 @@ var merge_default = {
     const H = { right: (v) => scoreEl.textContent = v };
     const nextImg = h("span", { class: "mnext" });
     const box = h("div", { class: "field mbox" });
+    lockTouch(box);
     const line = h("div", { class: "mline" });
     const guide = h("div", { class: "mguide" });
     box.append(guide, line);
@@ -3671,6 +3686,7 @@ var run_default = {
     const lifeEl = h("div", { class: "rlives" });
     stage.append(h("div", { class: "hud" }, h("div", {}, h("span", { class: "muted" }, t("gh.bowls")), " ", score), lifeEl));
     const field = h("div", { class: "field rfield" }, h("div", { class: "rlanes" }), h("div", { class: "rspeed" }));
+    lockTouch(field);
     const dogInner = h("div", { class: "rdogin" }, artImg("dogOpen"));
     const dog = h("div", { class: "rdog" }, h("div", { class: "rshadow" }), dogInner);
     const streakEl = h("div", { class: "rstreak" });
@@ -3936,6 +3952,7 @@ var blocks_default = {
     const board = h("div", { class: "bkboard" });
     const banner = h("div", { class: "bkbanner" });
     const tray = h("div", { class: "bktray" });
+    lockTouch(board, tray);
     stage.append(board, tray, h("p", { class: "muted center" }, t("g.blocks.hint")));
     let S = Math.floor(Math.min(board.clientWidth || stage.clientWidth || 320, 400) / N);
     board.style.width = board.style.height = `${S * N}px`;
@@ -4260,6 +4277,7 @@ var chain_default = {
     const SEC = lv(75, 60, 50);
     const H = hud(stage, "gh.time", "gh.points");
     const box = h("div", { class: "field cbox" });
+    lockTouch(box);
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "cline");
     const path = document.createElementNS("http://www.w3.org/2000/svg", "polyline");

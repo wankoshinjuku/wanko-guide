@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>くるくるわんこ 挑戦動画</title>
+<style>
+:root{--o:#F97316;--bg:#fff7ee;--ink:#222;--sub:#666}
+*{box-sizing:border-box}
+body{font-family:-apple-system,"Hiragino Sans",sans-serif;margin:0;padding:16px;background:var(--bg);color:var(--ink);max-width:560px;margin:auto}
+h1{font-size:21px;color:var(--o);margin:4px 0 10px}
+.lang{float:right;font-size:14px;border:1px solid var(--o);color:var(--o);background:#fff;border-radius:16px;padding:4px 12px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+.btn{display:block;width:100%;font-size:18px;padding:14px;border:0;border-radius:10px;background:var(--o);color:#fff;font-weight:bold;margin-top:10px;text-align:center;text-decoration:none}
+.btn.sub{background:#fff;color:var(--o);border:2px solid var(--o)}
+.small{font-size:13px;color:var(--sub);line-height:1.6}
+.bar{height:10px;background:#eee;border-radius:5px;overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;background:var(--o);width:0;transition:width .3s}
+video{width:100%;border-radius:10px;background:#000;display:block}
+.big{font-size:40px;font-weight:900;color:var(--o);text-align:center;margin:6px 0}
+.hide{display:none}
+</style></head><body>
+<button class="lang" id="lang">English</button>
+<h1 data-t="title"></h1>
+<div class="card" id="box">
+  <div id="msg" style="font-weight:bold"></div>
+  <div class="bar" id="barw"><i id="bar"></i></div>
+</div>
+<div class="card hide" id="done">
+  <div class="big" id="cups"></div>
+  <video id="vid" controls playsinline></video>
+  <button class="btn" id="save" data-t="save"></button>
+  <p class="small" id="howto" data-t="howto"></p>
+  <p class="small" id="exp"></p>
+</div>
+<div class="card">
+  <p class="small" data-t="follow"></p>
+  <a class="btn sub" href="https://www.instagram.com/kurukuruwnk/" target="_blank">Instagram @kurukuruwnk</a>
+</div>
+<script>
+const T={
+ ja:{title:'🎬 挑戦動画',wait:'仕上げています…（2〜3分）。この画面のままお待ちください。',load:'動画を読み込んでいます…',bowls:n=>n+'杯',
+  save:'動画を保存する',howto:'iPhoneは「保存する」→「ビデオを保存」で写真に入ります。',until:d=>d+' まで見られます。お早めに保存してください。',
+  gone:'この動画の見られる期間は終わりました。',expired:'この動画の見られる期間は終わりました。',error:'うまく仕上がりませんでした。スタッフにお知らせください。',
+  net:'つながりませんでした。電波の良い所で、もう一度開いてください。',follow:'挑戦ありがとうございました。お店のInstagramもぜひフォローしてください。'},
+ en:{title:'🎬 Your Challenge Video',wait:'Making your video… (2–3 min). Please keep this page open.',load:'Loading your video…',bowls:n=>n+' bowls',
+  save:'Save the video',howto:'On iPhone: tap "Save the video" → "Save Video" to add it to Photos.',until:d=>'Available until '+d+'. Please save it soon.',
+  gone:'This video is no longer available.',expired:'This video is no longer available.',error:'Something went wrong. Please tell our staff.',
+  net:'Could not connect. Please open this page again where the signal is good.',follow:'Thank you for taking the challenge! Follow us on Instagram.'}
+};
+const API='https://script.google.com/macros/s/AKfycbyQJEuY3oQ2UxEJKqzsF9oEIwB4opo9V1CQkZiPvlbjYgiycU8NaqRQ1JSFghf_JWCs7A/exec';
+const $=id=>document.getElementById(id);
+const P=new URLSearchParams(location.search), tok=P.get('t')||'';
+let L=P.get('l')||((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en');
+let last=null, blob=null;
+function paint(){document.documentElement.lang=L;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[L][e.dataset.t]);$('lang').textContent=L==='ja'?'English':'日本語';if(last)show(last);}
+$('lang').onclick=()=>{L=L==='ja'?'en':'ja';paint();};
+async function api(q){const r=await fetch(API,{method:'POST',body:JSON.stringify(q)});const j=await r.json();if(!j.ok)throw new Error(j.error||'NG');return j;}
+function fmt(iso){const d=new Date(iso);return d.toLocaleString(L==='ja'?'ja-JP':'en-US',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+function show(s){
+  if(s.status==='done'&&blob){$('box').classList.add('hide');$('done').classList.remove('hide');$('cups').textContent=T[L].bowls(s.cups);$('exp').textContent=T[L].until(fmt(s.expires));}
+}
+async function run(){
+  paint();
+  if(!tok){$('msg').textContent=T[L].gone;$('barw').classList.add('hide');return;}
+  const t0=Date.now();
+  while(true){
+    let s;try{s=await api({action:'c_status',token:tok});}catch(e){$('msg').textContent=T[L].net;await new Promise(z=>setTimeout(z,5000));continue;}
+    if(s.status==='gone'||s.status==='expired'){$('msg').textContent=T[L][s.status];$('barw').classList.add('hide');return;}
+    if(s.status==='error'){$('msg').textContent=T[L].error;$('barw').classList.add('hide');return;}
+    if(s.status==='done'){last=s;break;}
+    $('msg').textContent=T[L].wait;$('bar').style.width=Math.min(95,(Date.now()-t0)/1500)+'%';
+    await new Promise(z=>setTimeout(z,5000));
+  }
+  // 動画を少しずつ受け取って組み立てる
+  $('msg').textContent=T[L].load;const parts=[];let pos=0;
+  while(pos<last.size){
+    let r,tries=0;
+    while(true){try{r=await api({action:'c_chunk',token:tok,start:pos,len:4000000});break;}catch(e){if(++tries>3){$('msg').textContent=T[L].net;return;}await new Promise(z=>setTimeout(z,2000*tries));}}
+    const bin=atob(r.data),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    parts.push(u);pos+=u.length;$('bar').style.width=(pos/last.size*100)+'%';
+    if(!u.length)break;
+  }
+  blob=new Blob(parts,{type:'video/mp4'});
+  $('vid').src=URL.createObjectURL(blob);
+  show(last);
+}
+$('save').onclick=async()=>{
+  if(!blob)return;
+  const name='kurukuru-wanko_'+last.cups+(L==='ja'?'杯':'bowls')+'.mp4';
+  const f=new File([blob],name,{type:'video/mp4'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return;}catch(e){if(e.name==='AbortError')return;}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+};
+run();
+</script></body></html>

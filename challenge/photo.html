@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="挑戦動画">
+<link rel="apple-touch-icon" href="icon.png">
+<title>くるくるわんこ 挑戦動画</title>
+<style>
+:root{--o:#F97316;--bg:#fff7ee;--ink:#222;--sub:#666}
+*{box-sizing:border-box}
+body{font-family:-apple-system,"Hiragino Sans",sans-serif;margin:0;padding:16px;background:var(--bg);color:var(--ink);max-width:560px;margin:auto}
+h1{font-size:21px;color:var(--o);margin:4px 0 4px}
+.lead{font-size:14px;color:var(--sub);margin:0 0 12px;line-height:1.5}
+.lang{float:right;font-size:14px;border:1px solid var(--o);color:var(--o);background:#fff;border-radius:16px;padding:4px 12px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+label.t{font-weight:bold;display:block;margin-bottom:8px}
+input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;border-radius:8px}
+.btn{display:block;width:100%;font-size:19px;padding:16px;border:0;border-radius:12px;background:var(--o);color:#fff;font-weight:bold;margin-top:10px;text-align:center;text-decoration:none}
+.btn.sub{background:#fff;color:var(--o);border:2px solid var(--o)}
+.btn.ng{background:#5b4636}
+.btn:disabled{opacity:.45}
+.small{font-size:13px;color:var(--sub);line-height:1.5}
+.bar{height:10px;background:#eee;border-radius:5px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:var(--o);width:0;transition:width .3s}
+.okc{color:#2a8a2a;font-weight:bold}.ngc{color:#c00;font-weight:bold}
+#qr{display:flex;justify-content:center;margin:12px 0}
+#qr img,#qr canvas{width:240px;height:240px}
+.shop #qr img,.shop #qr canvas{width:300px;height:300px}
+.hide{display:none!important}
+.row{display:flex;gap:8px}.row>div{flex:1}
+.seg{display:flex;gap:6px;margin-bottom:10px}.seg button{flex:1;font-size:18px;padding:10px 0;border:2px solid #ddd;border-radius:10px;background:#fff;color:var(--ink);font-weight:bold}
+.seg button.on{border-color:var(--o);background:var(--o);color:#fff}
+.seg button[data-n="0"]{flex:2;font-size:15px}
+.cup{display:flex;align-items:center;gap:8px;margin-top:8px}.cup span{width:3.5em;font-weight:bold;color:var(--sub)}.cup input{flex:1}
+.thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.thumbs img{width:62px;height:62px;object-fit:cover;border-radius:8px}
+.swap{display:block;text-align:center;margin-top:10px;font-size:14px;color:var(--o)}
+.tag{display:inline-block;font-size:12px;background:#5b4636;color:#fff;border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+</style></head><body>
+<button class="lang" id="lang">English</button>
+<h1><span data-t="title"></span><span class="tag hide" id="shoptag">店</span></h1>
+<p class="lead cust" data-t="lead"></p>
+
+<div id="form">
+<div class="card">
+  <label class="t" data-t="pick_l"></label>
+  <input id="file" type="file" accept="image/*" multiple style="display:none">
+  <button class="btn sub" id="pick" data-t="pick"></button>
+  <div id="thumbs" class="thumbs"></div>
+  <div id="fname" class="small" style="margin-top:6px"></div>
+  <div class="bar hide" id="ubarw"><i id="ubar"></i></div>
+  <a class="swap" href="./" data-t="swap"></a>
+</div>
+<div class="card">
+  <label class="t" data-t="cups_l"></label>
+  <div class="seg" id="seg">
+    <button data-n="0" data-t="n0"></button><button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button>
+  </div>
+  <div id="cupsbox"></div>
+</div>
+<div class="card">
+  <label class="t" data-t="sns_l"></label>
+  <div class="cust">
+    <p class="small" data-t="sns_ok_d"></p>
+    <p class="small" data-t="sns_ng_d"></p>
+  </div>
+  <button class="btn" id="send_ok" data-t="send_ok"></button>
+  <button class="btn ng" id="send_ng" data-t="send_ng"></button>
+  <p class="small" data-t="sns_note"></p>
+</div>
+<p id="err" class="ngc"></p>
+</div>
+
+<div id="wait" class="card hide">
+  <div id="w_msg" style="font-weight:bold"></div>
+  <div class="bar"><i id="w_bar"></i></div>
+  <p class="small" data-t="qr_l"></p>
+  <div id="qr"></div>
+  <div id="w_btn"></div>
+  <button class="btn sub" id="again" data-t="again"></button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const T={
+ ja:{title:'📸 挑戦動画（写真で作る）',lead:'挑戦の写真を送ると、数分でお店の記念動画にしてお返しします。',
+  pick_l:'① 写真（1〜10枚）',pick:'写真を選ぶ',swap:'🎬 動画（タイムラプス）で作る場合はこちら',cups_l:'② 記録を入れる人数と杯数',n0:'記録なし',ph:'杯数を入力',who:i=>(i+1)+'人目',min_l:'挑戦した時間（分）',
+  sns_l:'③ お店のSNSで使ってよいですか？',
+  sns_ok_d:'<b>OK</b>：お店のSNS（Instagramなど）で紹介させていただきます。動画は<b>7日間</b>見られます。',
+  sns_ng_d:'<b>NG</b>：お店のSNSには使いません。動画は<b>翌日まで</b>見られます。',
+  send_ok:'SNS OK で送る',send_ng:'SNS NG で送る',
+  sns_note:'どちらも無料です。SNSでの使用は、あとから取りやめられます（お店のInstagram @kurukuruwnk にDMをください）。お子さまが写る場合は、保護者の方が選んでください。',
+  upping:'送っています…',upped:'写真は送れました',
+  made:'仕上げています…（2〜3分）',ready:'できました！',qr_l:'このQRコードを読むと、動画を受け取れます。',
+  again:'次の動画を送る',open:'動画を見る・保存する',e_file:'写真を選んでください',e_cups:'杯数を入れてください',
+  e_net:'送れませんでした。電波の良い所で、もう一度「写真を選ぶ」から送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
+ en:{title:'📸 Challenge Video (from photos)',lead:'Send photos of your challenge, and we will turn them into a souvenir video in a few minutes.',
+  pick_l:'① Your photos (1–10)',pick:'Choose photos',swap:'🎬 Use a time-lapse video instead',cups_l:'② How many people? / Bowls',n0:'No record',ph:'Bowls',who:i=>'#'+(i+1),min_l:'Minutes',
+  sns_l:'③ May we post it on our social media?',
+  sns_ok_d:'<b>Yes</b>: we may share it on our social media (Instagram, etc.). Your video is available for <b>7 days</b>.',
+  sns_ng_d:'<b>No</b>: we will not post it. Your video is available <b>until the end of tomorrow</b>.',
+  send_ok:'Yes, send',send_ng:'No, send (don\'t post)',
+  sns_note:'Both are free. You can withdraw permission anytime (DM us on Instagram @kurukuruwnk). If a child appears in the video, a parent or guardian should choose.',
+  upping:'Sending…',upped:'Photos sent',
+  made:'Making your video… (2–3 min)',ready:'Ready!',qr_l:'Scan this QR code to get your video.',
+  again:'Send another video',open:'Watch & save the video',e_file:'Please choose photos',e_cups:'Please enter the number of bowls',
+  e_net:'Could not send. Please choose the photos again where the signal is good.',e_big:'This video is too large (max 300MB). Please choose a video taken in Time-lapse mode.',err_made:'Something went wrong. Please tell our staff.'}
+};
+const API='https://script.google.com/macros/s/AKfycbyQJEuY3oQ2UxEJKqzsF9oEIwB4opo9V1CQkZiPvlbjYgiycU8NaqRQ1JSFghf_JWCs7A/exec';
+const $=id=>document.getElementById(id);
+const P=new URLSearchParams(location.search);
+// 店のスマホ：?shop=1 で開くと覚える（ホーム画面のアイコンからも店の形で開く）。?shop=0 で戻す
+let SHOP=false;
+try{ if(P.get('shop')==='1') localStorage.setItem('cv_shop','1'); if(P.get('shop')==='0') localStorage.removeItem('cv_shop'); SHOP=localStorage.getItem('cv_shop')==='1'; }catch(e){ SHOP=P.get('shop')==='1'; }
+let L=SHOP?'ja':((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en');
+try{const s=localStorage.getItem('cv_lang'); if(s&&!SHOP) L=s;}catch(e){}
+if(SHOP){document.body.classList.add('shop');$('shoptag').classList.remove('hide');document.querySelectorAll('.cust').forEach(e=>e.classList.add('hide'));}
+function paint(){document.documentElement.lang=L;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[L][e.dataset.t]);$('lang').textContent=L==='ja'?'English':'日本語';}
+$('lang').onclick=()=>{L=L==='ja'?'en':'ja';try{if(!SHOP)localStorage.setItem('cv_lang',L)}catch(e){};paint();drawCups();};
+paint();
+// 記録を入れる人数：記録なし／1〜4人（ふだんは1人）
+let N=1;
+function drawCups(){
+  const old=[...document.querySelectorAll('.cupin')].map(e=>e.value);
+  document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',+b.dataset.n===N));
+  $('cupsbox').innerHTML=Array.from({length:N},(_,i)=>`<div class="cup">${N>1?`<span>${T[L].who(i)}</span>`:''}<input class="cupin" type="number" inputmode="numeric" min="0" max="2000" placeholder="${T[L].ph}"></div>`).join('');
+  document.querySelectorAll('.cupin').forEach((e,i)=>{if(old[i]!==undefined)e.value=old[i];});
+}
+document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{N=+b.dataset.n;drawCups();const f=document.querySelector('.cupin');if(f)f.focus();});
+drawCups();
+
+async function api(q){const r=await fetch(API,{method:'POST',body:JSON.stringify(q)});const j=await r.json();if(!j.ok)throw new Error(j.error||'NG');return j;}
+async function up(url,f,onp){
+  const CH=8*1024*1024;let pos=0;
+  while(pos<f.size){
+    const end=Math.min(pos+CH,f.size);let r,tries=0;
+    while(true){try{r=await fetch(url,{method:'PUT',headers:{'Content-Range':`bytes ${pos}-${end-1}/${f.size}`},body:f.slice(pos,end)});break;}
+      catch(e){if(++tries>3)throw e;await new Promise(z=>setTimeout(z,2000*tries));}}
+    if(r.status===308){const g=r.headers.get('Range');pos=g?parseInt(g.split('-')[1])+1:end;}
+    else if(r.ok){pos=f.size;}else throw new Error('upload '+r.status);
+    onp(pos/f.size);
+  }
+}
+// 動画を選んだ瞬間に送り始める（杯数・SNSを入れている間に送り終わる）
+let cur=null; // {token, done:Promise, ok:bool}
+$('pick').onclick=()=>$('file').click();
+// 写真はスマホの中でJPEGにして小さくしてから送る（iPhoneのHEICも、送る時間も短く）
+function toJpeg(f){
+  return new Promise((ok,ng)=>{
+    const url=URL.createObjectURL(f), img=new Image();
+    img.onload=()=>{const s=Math.min(1,2000/Math.max(img.naturalWidth,img.naturalHeight));
+      const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*s);c.height=Math.round(img.naturalHeight*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+      c.toBlob(b=>b?ok(b):ng(new Error('jpeg')),'image/jpeg',0.88);};
+    img.onerror=()=>{URL.revokeObjectURL(url);ok(f);}; // 変えられない時はそのまま送る
+    img.src=url;
+  });
+}
+$('file').onchange=e=>{
+  const fs=[...e.target.files]; $('err').textContent='';
+  if(!fs.length)return;
+  if(fs.length>10){cur=null;$('err').textContent=L==='ja'?'写真は10枚までです':'Up to 10 photos';return;}
+  $('thumbs').innerHTML=fs.map(f=>`<img src="${URL.createObjectURL(f)}">`).join('');
+  $('fname').textContent=(L==='ja'?fs.length+'枚':fs.length+' photos');
+  $('ubarw').classList.remove('hide');$('ubar').style.width='0';
+  const job={token:null,ok:false};
+  job.done=(async()=>{
+    const s=await api({action:'c_pstart',pin:'1107',count:fs.length,lang:L});
+    job.token=s.token;
+    for(let i=0;i<fs.length;i++){
+      const b=await toJpeg(fs[i]);
+      const name=(b===fs[i]?fs[i].name:'photo.jpg');
+      const u=(await api({action:'c_photo',token:job.token,idx:i,name,mime:b.type||'image/jpeg',size:b.size})).url;
+      await up(u,b,p=>{$('ubar').style.width=((i+p)/fs.length*100)+'%';});
+    }
+    job.ok=true;$('fname').innerHTML=`<span class="okc">✓ ${T[L].upped}</span>`;
+  })().catch(err=>{job.err=err;if(cur===job){$('err').textContent=T[L].e_net;}});
+  cur=job;
+};
+async function submit(sns){
+  $('err').textContent='';
+  if(!cur)return $('err').textContent=T[L].e_file;
+  const vals=[...document.querySelectorAll('.cupin')].map(e=>e.value.trim());
+  if(vals.some(v=>v===''||!(parseInt(v,10)>=0)))return $('err').textContent=T[L].e_cups;
+  const cups=vals.map(v=>parseInt(v,10));
+  const job=cur;
+  $('send_ok').disabled=$('send_ng').disabled=true;
+  $('send_'+sns).textContent=T[L].upping;
+  try{
+    await job.done; if(!job.ok)throw job.err||new Error('upload');
+    await api({action:'c_set',token:job.token,cups,sns,minutes:40});
+    let ok=false;for(let i=0;i<5&&!ok;i++){try{await api({action:'c_uploaded',token:job.token});ok=true;}catch(e){await new Promise(z=>setTimeout(z,3000));}}
+    if(!ok)throw new Error('uploaded');
+  }catch(e){$('err').textContent=T[L].e_net;$('send_ok').disabled=$('send_ng').disabled=false;paint();return;}
+  $('form').classList.add('hide');$('wait').classList.remove('hide');window.scrollTo(0,0);
+  const vurl=location.href.replace(/[^/]*(\?.*)?$/,'')+'v.html?t='+job.token;
+  $('qr').innerHTML='';
+  new QRCode($('qr'),{text:vurl,width:480,height:480,correctLevel:QRCode.CorrectLevel.M});
+  watch(job.token,vurl);
+}
+$('send_ok').onclick=()=>submit('ok');
+$('send_ng').onclick=()=>submit('ng');
+async function watch(tok,vurl){
+  const t0=Date.now();
+  while(true){
+    let s;try{s=await api({action:'c_status',token:tok});}catch(e){s={status:'?'};}
+    if(s.status==='done'){$('w_msg').innerHTML=`<span class="okc">${T[L].ready}</span>`;$('w_bar').style.width='100%';
+      $('w_btn').innerHTML=`<a class="btn" href="${vurl}">${T[L].open}</a>`;return;}
+    if(s.status==='error'){$('w_msg').innerHTML=`<span class="ngc">${T[L].err_made}</span>`;return;}
+    $('w_msg').textContent=T[L].made;$('w_bar').style.width=Math.min(95,(Date.now()-t0)/1500)+'%';
+    await new Promise(z=>setTimeout(z,3000));
+  }
+}
+$('again').onclick=()=>location.href=location.pathname;
+</script></body></html>

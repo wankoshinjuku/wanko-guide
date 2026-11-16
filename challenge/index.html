@@ -29,6 +29,7 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
 .seg button.on{border-color:var(--o);background:var(--o);color:#fff}
 .seg button[data-n="0"]{flex:2;font-size:15px}
 .cup{display:flex;align-items:center;gap:8px;margin-top:8px}.cup span{width:3.5em;font-weight:bold;color:var(--sub)}.cup input{flex:1}
+.swap{display:block;text-align:center;margin-top:10px;font-size:14px;color:var(--o)}
 .tag{display:inline-block;font-size:12px;background:#5b4636;color:#fff;border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 </style></head><body>
 <button class="lang" id="lang">English</button>
@@ -42,6 +43,7 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
   <button class="btn sub" id="pick" data-t="pick"></button>
   <div id="fname" class="small" style="margin-top:6px"></div>
   <div class="bar hide" id="ubarw"><i id="ubar"></i></div>
+  <a class="swap" href="photo.html" data-t="swap"></a>
 </div>
 <div class="card">
   <label class="t" data-t="cups_l"></label>
@@ -76,7 +78,7 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
 <script>
 const T={
  ja:{title:'🎬 挑戦動画',lead:'タイムラプスで撮った挑戦の動画を送ると、数分でお店の記念動画にしてお返しします。',
-  pick_l:'① 撮った動画（タイムラプス）',pick:'動画を選ぶ',cups_l:'② 記録を入れる人数と杯数',n0:'記録なし',ph:'杯数を入力',who:i=>(i+1)+'人目',min_l:'挑戦した時間（分）',
+  pick_l:'① 撮った動画（タイムラプス）',pick:'動画を選ぶ',swap:'📸 写真で作る場合はこちら',cups_l:'② 記録を入れる人数と杯数',n0:'記録なし',ph:'杯数を入力',who:i=>(i+1)+'人目',min_l:'挑戦した時間（分）',
   sns_l:'③ お店のSNSで使ってよいですか？',
   sns_ok_d:'<b>OK</b>：お店のSNS（Instagramなど）で紹介させていただきます。動画は<b>7日間</b>見られます。',
   sns_ng_d:'<b>NG</b>：お店のSNSには使いません。動画は<b>翌日まで</b>見られます。',
@@ -87,7 +89,7 @@ const T={
   again:'次の動画を送る',open:'動画を見る・保存する',e_file:'動画を選んでください',e_cups:'杯数を入れてください',
   e_net:'送れませんでした。電波の良い所で、もう一度「動画を選ぶ」から送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
  en:{title:'🎬 Challenge Video',lead:'Send the time-lapse video of your challenge, and we will turn it into a souvenir video in a few minutes.',
-  pick_l:'① Your time-lapse video',pick:'Choose video',cups_l:'② How many people? / Bowls',n0:'No record',ph:'Bowls',who:i=>'#'+(i+1),min_l:'Minutes',
+  pick_l:'① Your time-lapse video',pick:'Choose video',swap:'📸 Use photos instead',cups_l:'② How many people? / Bowls',n0:'No record',ph:'Bowls',who:i=>'#'+(i+1),min_l:'Minutes',
   sns_l:'③ May we post it on our social media?',
   sns_ok_d:'<b>Yes</b>: we may share it on our social media (Instagram, etc.). Your video is available for <b>7 days</b>.',
   sns_ng_d:'<b>No</b>: we will not post it. Your video is available <b>until the end of tomorrow</b>.',

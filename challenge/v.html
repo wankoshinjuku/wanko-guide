@@ -62,12 +62,12 @@ async function run(){
   if(!tok){$('msg').textContent=T[L].gone;$('barw').classList.add('hide');return;}
   const t0=Date.now();
   while(true){
-    let s;try{s=await api({action:'c_status',token:tok});}catch(e){$('msg').textContent=T[L].net;await new Promise(z=>setTimeout(z,5000));continue;}
+    let s;try{s=await api({action:'c_status',token:tok});}catch(e){$('msg').textContent=T[L].net;await new Promise(z=>setTimeout(z,3000));continue;}
     if(s.status==='gone'||s.status==='expired'){$('msg').textContent=T[L][s.status];$('barw').classList.add('hide');return;}
     if(s.status==='error'){$('msg').textContent=T[L].error;$('barw').classList.add('hide');return;}
     if(s.status==='done'){last=s;break;}
     $('msg').textContent=T[L].wait;$('bar').style.width=Math.min(95,(Date.now()-t0)/1500)+'%';
-    await new Promise(z=>setTimeout(z,5000));
+    await new Promise(z=>setTimeout(z,3000));
   }
   // 動画を2MBずつ、4本同時に受け取って組み立てる
   $('msg').textContent=T[L].load;

@@ -182,7 +182,7 @@ async function watch(tok,vurl){
       $('w_btn').innerHTML=`<a class="btn" href="${vurl}">${T[L].open}</a>`;return;}
     if(s.status==='error'){$('w_msg').innerHTML=`<span class="ngc">${T[L].err_made}</span>`;return;}
     $('w_msg').textContent=T[L].made;$('w_bar').style.width=Math.min(95,(Date.now()-t0)/1500)+'%';
-    await new Promise(z=>setTimeout(z,5000));
+    await new Promise(z=>setTimeout(z,3000));
   }
 }
 $('again').onclick=()=>location.href=location.pathname;

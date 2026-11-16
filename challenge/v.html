@@ -68,15 +68,21 @@ async function run(){
     $('msg').textContent=T[L].wait;$('bar').style.width=Math.min(95,(Date.now()-t0)/1500)+'%';
     await new Promise(z=>setTimeout(z,5000));
   }
-  // 動画を少しずつ受け取って組み立てる
-  $('msg').textContent=T[L].load;const parts=[];let pos=0;
-  while(pos<last.size){
-    let r,tries=0;
-    while(true){try{r=await api({action:'c_chunk',token:tok,start:pos,len:4000000});break;}catch(e){if(++tries>3){$('msg').textContent=T[L].net;return;}await new Promise(z=>setTimeout(z,2000*tries));}}
-    const bin=atob(r.data),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
-    parts.push(u);pos+=u.length;$('bar').style.width=(pos/last.size*100)+'%';
-    if(!u.length)break;
+  // 動画を2MBずつ、4本同時に受け取って組み立てる
+  $('msg').textContent=T[L].load;
+  const CH=2000000, n=Math.ceil(last.size/CH), parts=new Array(n); let got=0, next=0, fail=false;
+  async function one(i){
+    let tries=0;
+    while(true){
+      try{const r=await api({action:'c_chunk',token:tok,start:i*CH,len:CH});
+        const bin=atob(r.data),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);
+        parts[i]=u;got+=u.length;$('bar').style.width=(got/last.size*100)+'%';return;}
+      catch(e){if(++tries>3){fail=true;return;}await new Promise(z=>setTimeout(z,2000*tries));}
+    }
   }
+  async function lane(){while(!fail&&next<n){await one(next++);}}
+  await Promise.all([lane(),lane(),lane(),lane()]);
+  if(fail||got<last.size){$('msg').textContent=T[L].net;return;}
   blob=new Blob(parts,{type:'video/mp4'});
   $('vid').src=URL.createObjectURL(blob);
   show(last);

@@ -78,7 +78,7 @@ const T={
   sns_note:'どちらも無料です。SNSでの使用は、あとから取りやめられます（お店のInstagram @kurukuruwnk にDMをください）。お子さまが写る場合は、保護者の方が選んでください。',
   send:'送る',keep_open:'送り終わるまで、この画面を閉じないでください。',up:'送っています…',
   made:'仕上げています…（2〜3分）',ready:'できました！',qr_l:'お客様のスマホでこのQRコードを読むと、動画を受け取れます。この画面のままでも、できたら下のボタンから見られます。',
-  again:'次の動画を送る',open:'動画を見る・保存する',e_file:'動画を選んでください',e_cups:'杯数を入れてください',e_sns:'SNSのOK/NGを選んでください',e_net:'送れませんでした。電波の良い所で、もう一度送ってください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
+  again:'次の動画を送る',open:'動画を見る・保存する',e_file:'動画を選んでください',e_cups:'杯数を入れてください',e_sns:'SNSのOK/NGを選んでください',e_net:'送れませんでした。電波の良い所で、もう一度送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
  en:{title:'🎬 Your Challenge Video',lead:'Send the time-lapse video of your challenge, and we will turn it into a souvenir video in a few minutes.',
   pick_l:'① Your time-lapse video',pick:'Choose video',cups_l:'② Bowls',min_l:'Minutes',
   sns_l:'③ May we post it on our social media?',sns_ok:'<b>Yes, you may post it</b><br><span class="small">We may share it on our social media (Instagram, etc.). Your video is available for <b>7 days</b>.</span>',
@@ -86,7 +86,7 @@ const T={
   sns_note:'Both are free. You can withdraw permission anytime (DM us on Instagram @kurukuruwnk). If a child appears in the video, a parent or guardian should choose.',
   send:'Send',keep_open:'Please keep this page open until sending is finished.',up:'Sending…',
   made:'Making your video… (2–3 min)',ready:'Ready!',qr_l:'Scan this QR code with your phone to get the video. You can also wait here and tap the button when it is ready.',
-  again:'Send another video',open:'Watch & save the video',e_file:'Please choose a video',e_cups:'Please enter the number of bowls',e_sns:'Please choose Yes or No for social media',e_net:'Could not send. Please try again where the signal is good.',err_made:'Something went wrong. Please tell our staff.'}
+  again:'Send another video',open:'Watch & save the video',e_file:'Please choose a video',e_cups:'Please enter the number of bowls',e_sns:'Please choose Yes or No for social media',e_net:'Could not send. Please try again where the signal is good.',e_big:'This video is too large (max 300MB). Please choose a video taken in Time-lapse mode.',err_made:'Something went wrong. Please tell our staff.'}
 };
 const API='https://script.google.com/macros/s/AKfycbyQJEuY3oQ2UxEJKqzsF9oEIwB4opo9V1CQkZiPvlbjYgiycU8NaqRQ1JSFghf_JWCs7A/exec';
 const $=id=>document.getElementById(id);
@@ -117,6 +117,7 @@ async function up(url,f){
 $('send').onclick=async()=>{
   $('err').textContent='';
   if(!file)return $('err').textContent=T[L].e_file;
+  if(file.size>300*1024*1024)return $('err').textContent=T[L].e_big;
   const cups=parseInt($('cups').value,10);
   if(!(cups>=0))return $('err').textContent=T[L].e_cups;
   if(!sns())return $('err').textContent=T[L].e_sns;

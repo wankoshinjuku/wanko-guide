@@ -35,11 +35,11 @@ video{width:100%;border-radius:10px;background:#000;display:block}
 </div>
 <script>
 const T={
- ja:{title:'🎬 挑戦動画',wait:'仕上げています…（2〜3分）。この画面のままお待ちください。',load:'動画を読み込んでいます…',bowls:n=>n+'杯',
+ ja:{title:'🎬 挑戦動画',wait:'仕上げています…（2〜3分）。この画面のままお待ちください。',load:'動画を読み込んでいます…',bowls:c=>c.length?c.join(' / ')+'杯':'ナイスチャレンジ',
   save:'動画を保存する',howto:'iPhoneは「保存する」→「ビデオを保存」で写真に入ります。',until:d=>d+' まで見られます。お早めに保存してください。',
   gone:'この動画の見られる期間は終わりました。',expired:'この動画の見られる期間は終わりました。',error:'うまく仕上がりませんでした。スタッフにお知らせください。',
   net:'つながりませんでした。電波の良い所で、もう一度開いてください。',follow:'挑戦ありがとうございました。お店のInstagramもぜひフォローしてください。'},
- en:{title:'🎬 Your Challenge Video',wait:'Making your video… (2–3 min). Please keep this page open.',load:'Loading your video…',bowls:n=>n+' bowls',
+ en:{title:'🎬 Your Challenge Video',wait:'Making your video… (2–3 min). Please keep this page open.',load:'Loading your video…',bowls:c=>c.length?c.join(' / ')+' bowls':'Nice challenge',
   save:'Save the video',howto:'On iPhone: tap "Save the video" → "Save Video" to add it to Photos.',until:d=>'Available until '+d+'. Please save it soon.',
   gone:'This video is no longer available.',expired:'This video is no longer available.',error:'Something went wrong. Please tell our staff.',
   net:'Could not connect. Please open this page again where the signal is good.',follow:'Thank you for taking the challenge! Follow us on Instagram.'}
@@ -52,9 +52,10 @@ let last=null, blob=null;
 function paint(){document.documentElement.lang=L;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[L][e.dataset.t]);$('lang').textContent=L==='ja'?'English':'日本語';if(last)show(last);}
 $('lang').onclick=()=>{L=L==='ja'?'en':'ja';paint();};
 async function api(q){const r=await fetch(API,{method:'POST',body:JSON.stringify(q)});const j=await r.json();if(!j.ok)throw new Error(j.error||'NG');return j;}
+function cl(c){return Array.isArray(c)?c:(c===null||c===undefined?[]:[c]);}
 function fmt(iso){const d=new Date(iso);return d.toLocaleString(L==='ja'?'ja-JP':'en-US',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});}
 function show(s){
-  if(s.status==='done'&&blob){$('box').classList.add('hide');$('done').classList.remove('hide');$('cups').textContent=T[L].bowls(s.cups);$('exp').textContent=T[L].until(fmt(s.expires));}
+  if(s.status==='done'&&blob){$('box').classList.add('hide');$('done').classList.remove('hide');$('cups').textContent=T[L].bowls(cl(s.cups));$('exp').textContent=T[L].until(fmt(s.expires));}
 }
 async function run(){
   paint();
@@ -89,7 +90,7 @@ async function run(){
 }
 $('save').onclick=async()=>{
   if(!blob)return;
-  const name='kurukuru-wanko_'+last.cups+(L==='ja'?'杯':'bowls')+'.mp4';
+  const c=cl(last.cups);const name='kurukuru-wanko'+(c.length?'_'+c.join('-')+(L==='ja'?'杯':'bowls'):'')+'.mp4';
   const f=new File([blob],name,{type:'video/mp4'});
   if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return;}catch(e){if(e.name==='AbortError')return;}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();

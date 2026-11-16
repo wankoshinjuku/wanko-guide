@@ -25,6 +25,10 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
 .shop #qr img,.shop #qr canvas{width:300px;height:300px}
 .hide{display:none!important}
 .row{display:flex;gap:8px}.row>div{flex:1}
+.seg{display:flex;gap:6px;margin-bottom:10px}.seg button{flex:1;font-size:18px;padding:10px 0;border:2px solid #ddd;border-radius:10px;background:#fff;color:var(--ink);font-weight:bold}
+.seg button.on{border-color:var(--o);background:var(--o);color:#fff}
+.seg button[data-n="0"]{flex:2;font-size:15px}
+.cup{display:flex;align-items:center;gap:8px;margin-top:8px}.cup span{width:3.5em;font-weight:bold;color:var(--sub)}.cup input{flex:1}
 .tag{display:inline-block;font-size:12px;background:#5b4636;color:#fff;border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 </style></head><body>
 <button class="lang" id="lang">English</button>
@@ -40,7 +44,11 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
   <div class="bar hide" id="ubarw"><i id="ubar"></i></div>
 </div>
 <div class="card">
-  <label class="t" data-t="cups_l"></label><input id="cups" type="number" inputmode="numeric" min="0" max="2000" placeholder="63">
+  <label class="t" data-t="cups_l"></label>
+  <div class="seg" id="seg">
+    <button data-n="0" data-t="n0"></button><button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button>
+  </div>
+  <div id="cupsbox"></div>
 </div>
 <div class="card">
   <label class="t" data-t="sns_l"></label>
@@ -68,7 +76,7 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
 <script>
 const T={
  ja:{title:'🎬 挑戦動画',lead:'タイムラプスで撮った挑戦の動画を送ると、数分でお店の記念動画にしてお返しします。',
-  pick_l:'① 撮った動画（タイムラプス）',pick:'動画を選ぶ',cups_l:'② 杯数',min_l:'挑戦した時間（分）',
+  pick_l:'① 撮った動画（タイムラプス）',pick:'動画を選ぶ',cups_l:'② 記録を入れる人数と杯数',n0:'記録なし',who:i=>(i+1)+'人目',min_l:'挑戦した時間（分）',
   sns_l:'③ お店のSNSで使ってよいですか？',
   sns_ok_d:'<b>OK</b>：お店のSNS（Instagramなど）で紹介させていただきます。動画は<b>7日間</b>見られます。',
   sns_ng_d:'<b>NG</b>：お店のSNSには使いません。動画は<b>翌日まで</b>見られます。',
@@ -79,7 +87,7 @@ const T={
   again:'次の動画を送る',open:'動画を見る・保存する',e_file:'動画を選んでください',e_cups:'杯数を入れてください',
   e_net:'送れませんでした。電波の良い所で、もう一度「動画を選ぶ」から送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
  en:{title:'🎬 Challenge Video',lead:'Send the time-lapse video of your challenge, and we will turn it into a souvenir video in a few minutes.',
-  pick_l:'① Your time-lapse video',pick:'Choose video',cups_l:'② Bowls',min_l:'Minutes',
+  pick_l:'① Your time-lapse video',pick:'Choose video',cups_l:'② How many people? / Bowls',n0:'No record',who:i=>'#'+(i+1),min_l:'Minutes',
   sns_l:'③ May we post it on our social media?',
   sns_ok_d:'<b>Yes</b>: we may share it on our social media (Instagram, etc.). Your video is available for <b>7 days</b>.',
   sns_ng_d:'<b>No</b>: we will not post it. Your video is available <b>until the end of tomorrow</b>.',
@@ -100,8 +108,18 @@ let L=SHOP?'ja':((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':
 try{const s=localStorage.getItem('cv_lang'); if(s&&!SHOP) L=s;}catch(e){}
 if(SHOP){document.body.classList.add('shop');$('shoptag').classList.remove('hide');document.querySelectorAll('.cust').forEach(e=>e.classList.add('hide'));}
 function paint(){document.documentElement.lang=L;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[L][e.dataset.t]);$('lang').textContent=L==='ja'?'English':'日本語';}
-$('lang').onclick=()=>{L=L==='ja'?'en':'ja';try{if(!SHOP)localStorage.setItem('cv_lang',L)}catch(e){};paint();};
+$('lang').onclick=()=>{L=L==='ja'?'en':'ja';try{if(!SHOP)localStorage.setItem('cv_lang',L)}catch(e){};paint();drawCups();};
 paint();
+// 記録を入れる人数：記録なし／1〜4人（ふだんは1人）
+let N=1;
+function drawCups(){
+  const old=[...document.querySelectorAll('.cupin')].map(e=>e.value);
+  document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',+b.dataset.n===N));
+  $('cupsbox').innerHTML=Array.from({length:N},(_,i)=>`<div class="cup">${N>1?`<span>${T[L].who(i)}</span>`:''}<input class="cupin" type="number" inputmode="numeric" min="0" max="2000" placeholder="${[63,108,95,40][i]}"></div>`).join('');
+  document.querySelectorAll('.cupin').forEach((e,i)=>{if(old[i]!==undefined)e.value=old[i];});
+}
+document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{N=+b.dataset.n;drawCups();const f=document.querySelector('.cupin');if(f)f.focus();});
+drawCups();
 
 async function api(q){const r=await fetch(API,{method:'POST',body:JSON.stringify(q)});const j=await r.json();if(!j.ok)throw new Error(j.error||'NG');return j;}
 async function up(url,f,onp){
@@ -136,14 +154,15 @@ $('file').onchange=e=>{
 async function submit(sns){
   $('err').textContent='';
   if(!cur)return $('err').textContent=T[L].e_file;
-  const cups=$('cups').value;
-  if(cups===''||!(parseInt(cups,10)>=0))return $('err').textContent=T[L].e_cups;
+  const vals=[...document.querySelectorAll('.cupin')].map(e=>e.value.trim());
+  if(vals.some(v=>v===''||!(parseInt(v,10)>=0)))return $('err').textContent=T[L].e_cups;
+  const cups=vals.map(v=>parseInt(v,10));
   const job=cur;
   $('send_ok').disabled=$('send_ng').disabled=true;
   $('send_'+sns).textContent=T[L].upping;
   try{
     await job.done; if(!job.ok)throw job.err||new Error('upload');
-    await api({action:'c_set',token:job.token,cups:parseInt(cups,10),sns,minutes:40});
+    await api({action:'c_set',token:job.token,cups,sns,minutes:40});
     let ok=false;for(let i=0;i<5&&!ok;i++){try{await api({action:'c_uploaded',token:job.token});ok=true;}catch(e){await new Promise(z=>setTimeout(z,3000));}}
     if(!ok)throw new Error('uploaded');
   }catch(e){$('err').textContent=T[L].e_net;$('send_ok').disabled=$('send_ng').disabled=false;paint();return;}

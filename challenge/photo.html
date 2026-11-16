@@ -29,7 +29,8 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
 .seg button.on{border-color:var(--o);background:var(--o);color:#fff}
 .seg button[data-n="0"]{flex:2;font-size:15px}
 .cup{display:flex;align-items:center;gap:8px;margin-top:8px}.cup span{width:3.5em;font-weight:bold;color:var(--sub)}.cup input{flex:1}
-.thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.thumbs img{width:62px;height:62px;object-fit:cover;border-radius:8px}
+.thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.vthumb{display:flex;align-items:center;justify-content:center;width:62px;height:62px;border-radius:8px;background:#333;font-size:28px}
+.thumbs img{width:62px;height:62px;object-fit:cover;border-radius:8px}
 .swap{display:block;text-align:center;margin-top:10px;font-size:14px;color:var(--o)}
 .tag{display:inline-block;font-size:12px;background:#5b4636;color:#fff;border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 </style></head><body>
@@ -40,7 +41,7 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
 <div id="form">
 <div class="card">
   <label class="t" data-t="pick_l"></label>
-  <input id="file" type="file" accept="image/*" multiple style="display:none">
+  <input id="file" type="file" accept="image/*,video/*" multiple style="display:none">
   <button class="btn sub" id="pick" data-t="pick"></button>
   <div id="thumbs" class="thumbs"></div>
   <div id="fname" class="small" style="margin-top:6px"></div>
@@ -79,28 +80,28 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 const T={
- ja:{title:'📸 挑戦動画（写真で作る）',lead:'挑戦の写真を送ると、数分でお店の記念動画にしてお返しします。',
-  pick_l:'① 写真（1〜10枚）',pick:'写真を選ぶ',swap:'🎬 動画（タイムラプス）で作る場合はこちら',cups_l:'② 記録を入れる人数と杯数',n0:'記録なし',ph:'杯数を入力',who:i=>(i+1)+'人目',min_l:'挑戦した時間（分）',
+ ja:{title:'📸 挑戦動画（写真・動画で作る）',lead:'挑戦の写真や短い動画を送ると、1〜2分でお店の記念動画にしてお返しします。動画は早送りでまとめ、音は曲に変わります。',
+  pick_l:'① 写真・動画（合わせて10個まで）',pick:'写真・動画を選ぶ',swap:'🎬 動画（タイムラプス）で作る場合はこちら',cups_l:'② 記録を入れる人数と杯数',n0:'記録なし',ph:'杯数を入力',who:i=>(i+1)+'人目',min_l:'挑戦した時間（分）',
   sns_l:'③ お店のSNSで使ってよいですか？',
   sns_ok_d:'<b>OK</b>：お店のSNS（Instagramなど）で紹介させていただきます。動画は<b>7日間</b>見られます。',
   sns_ng_d:'<b>NG</b>：お店のSNSには使いません。動画は<b>翌日まで</b>見られます。',
   send_ok:'SNS OK で送る',send_ng:'SNS NG で送る',
   sns_note:'どちらも無料です。SNSでの使用は、あとから取りやめられます（お店のInstagram @kurukuruwnk にDMをください）。お子さまが写る場合は、保護者の方が選んでください。',
-  upping:'送っています…',upped:'写真は送れました',
+  upping:'送っています…',upped:'送れました',
   made:'仕上げています…（1〜2分）',ready:'できました！',qr_l:'このQRコードを読むと、動画を受け取れます。',
-  again:'次の動画を送る',open:'動画を見る・保存する',e_file:'写真を選んでください',e_cups:'杯数を入れてください',
-  e_net:'送れませんでした。電波の良い所で、もう一度「写真を選ぶ」から送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
- en:{title:'📸 Challenge Video (from photos)',lead:'Send photos of your challenge, and we will turn them into a souvenir video in a few minutes.',
-  pick_l:'① Your photos (1–10)',pick:'Choose photos',swap:'🎬 Use a time-lapse video instead',cups_l:'② How many people? / Bowls',n0:'No record',ph:'Bowls',who:i=>'#'+(i+1),min_l:'Minutes',
+  again:'次の動画を送る',open:'動画を見る・保存する',e_file:'写真か動画を選んでください',e_cups:'杯数を入れてください',
+  e_net:'送れませんでした。電波の良い所で、もう一度「写真・動画を選ぶ」から送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
+ en:{title:'📸 Challenge Video (photos & clips)',lead:'Send photos or short clips of your challenge, and we will turn them into a souvenir video in 1–2 minutes. Clips are sped up and music is added.',
+  pick_l:'① Photos & clips (up to 10)',pick:'Choose photos / clips',swap:'🎬 Use a time-lapse video instead',cups_l:'② How many people? / Bowls',n0:'No record',ph:'Bowls',who:i=>'#'+(i+1),min_l:'Minutes',
   sns_l:'③ May we post it on our social media?',
   sns_ok_d:'<b>Yes</b>: we may share it on our social media (Instagram, etc.). Your video is available for <b>7 days</b>.',
   sns_ng_d:'<b>No</b>: we will not post it. Your video is available <b>until the end of tomorrow</b>.',
   send_ok:'Yes, send',send_ng:'No, send (don\'t post)',
   sns_note:'Both are free. You can withdraw permission anytime (DM us on Instagram @kurukuruwnk). If a child appears in the video, a parent or guardian should choose.',
-  upping:'Sending…',upped:'Photos sent',
+  upping:'Sending…',upped:'Sent',
   made:'Making your video… (1–2 min)',ready:'Ready!',qr_l:'Scan this QR code to get your video.',
-  again:'Send another video',open:'Watch & save the video',e_file:'Please choose photos',e_cups:'Please enter the number of bowls',
-  e_net:'Could not send. Please choose the photos again where the signal is good.',e_big:'This video is too large (max 300MB). Please choose a video taken in Time-lapse mode.',err_made:'Something went wrong. Please tell our staff.'}
+  again:'Send another video',open:'Watch & save the video',e_file:'Please choose photos or clips',e_cups:'Please enter the number of bowls',
+  e_net:'Could not send. Please choose them again where the signal is good.',e_big:'This video is too large (max 300MB). Please choose a video taken in Time-lapse mode.',err_made:'Something went wrong. Please tell our staff.'}
 };
 const API='https://script.google.com/macros/s/AKfycbyQJEuY3oQ2UxEJKqzsF9oEIwB4opo9V1CQkZiPvlbjYgiycU8NaqRQ1JSFghf_JWCs7A/exec';
 const $=id=>document.getElementById(id);
@@ -155,19 +156,22 @@ function toJpeg(f){
 $('file').onchange=e=>{
   const fs=[...e.target.files]; $('err').textContent='';
   if(!fs.length)return;
-  if(fs.length>10){cur=null;$('err').textContent=L==='ja'?'写真は10枚までです':'Up to 10 photos';return;}
-  $('thumbs').innerHTML=fs.map(f=>`<img src="${URL.createObjectURL(f)}">`).join('');
-  $('fname').textContent=(L==='ja'?fs.length+'枚':fs.length+' photos');
+  if(fs.length>10){cur=null;$('err').textContent=L==='ja'?'写真・動画は合わせて10個までです':'Up to 10 items';return;}
+  const total=fs.reduce((a,f)=>a+f.size,0);
+  if(total>300*1024*1024){cur=null;$('err').textContent=L==='ja'?'大きすぎます（合わせて300MBまで）。動画を短くするか、本数を減らしてください。':'Too large (max 300MB in total). Please choose shorter or fewer clips.';return;}
+  $('thumbs').innerHTML=fs.map(f=>f.type.startsWith('video/')?`<span class="vthumb">🎬</span>`:`<img src="${URL.createObjectURL(f)}">`).join('');
+  $('fname').textContent=(L==='ja'?fs.length+'個（'+(total/1048576).toFixed(0)+'MB）':fs.length+' items ('+(total/1048576).toFixed(0)+'MB)');
   $('ubarw').classList.remove('hide');$('ubar').style.width='0';
   const job={token:null,ok:false};
   job.done=(async()=>{
     const s=await api({action:'c_pstart',pin:'1107',count:fs.length,lang:L});
     job.token=s.token;
+    let sent=0;const totalUp=fs.reduce((a,f)=>a+(f.type.startsWith('video/')?f.size:Math.min(f.size,1500000)),0);
     for(let i=0;i<fs.length;i++){
-      const b=await toJpeg(fs[i]);
+      const b=fs[i].type.startsWith('video/')?fs[i]:await toJpeg(fs[i]);  // 動画はそのまま送る
       const name=(b===fs[i]?fs[i].name:'photo.jpg');
-      const u=(await api({action:'c_photo',token:job.token,idx:i,name,mime:b.type||'image/jpeg',size:b.size})).url;
-      await up(u,b,p=>{$('ubar').style.width=((i+p)/fs.length*100)+'%';});
+      const u=(await api({action:'c_photo',token:job.token,idx:i,name,mime:b.type||(fs[i].type.startsWith('video/')?'video/quicktime':'image/jpeg'),size:b.size})).url;
+      await up(u,b,p=>{$('ubar').style.width=((sent+p*b.size)/totalUp*100)+'%';});sent+=b.size;
     }
     job.ok=true;$('fname').innerHTML=`<span class="okc">✓ ${T[L].upped}</span>`;
   })().catch(err=>{job.err=err;if(cur===job){$('err').textContent=T[L].e_net;}});

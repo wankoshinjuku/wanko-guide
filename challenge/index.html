@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="挑戦動画">
+<link rel="apple-touch-icon" href="icon.png">
 <title>くるくるわんこ 挑戦動画</title>
 <style>
 :root{--o:#F97316;--bg:#fff7ee;--ink:#222;--sub:#666}
@@ -10,25 +12,24 @@ h1{font-size:21px;color:var(--o);margin:4px 0 4px}
 .lang{float:right;font-size:14px;border:1px solid var(--o);color:var(--o);background:#fff;border-radius:16px;padding:4px 12px}
 .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
 label.t{font-weight:bold;display:block;margin-bottom:8px}
-input[type=number]{width:100%;font-size:22px;padding:10px;border:1px solid #ccc;border-radius:8px}
-.btn{display:block;width:100%;font-size:18px;padding:14px;border:0;border-radius:10px;background:var(--o);color:#fff;font-weight:bold;margin-top:8px}
+input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;border-radius:8px}
+.btn{display:block;width:100%;font-size:19px;padding:16px;border:0;border-radius:12px;background:var(--o);color:#fff;font-weight:bold;margin-top:10px;text-align:center;text-decoration:none}
 .btn.sub{background:#fff;color:var(--o);border:2px solid var(--o)}
-.btn:disabled{background:#bbb;border-color:#bbb;color:#fff}
-.opt{display:block;border:2px solid #ddd;border-radius:10px;padding:12px;margin-bottom:8px;line-height:1.5}
-.opt input{transform:scale(1.4);margin-right:8px}
-.opt.on{border-color:var(--o);background:#fff3e8}
+.btn.ng{background:#5b4636}
+.btn:disabled{opacity:.45}
 .small{font-size:13px;color:var(--sub);line-height:1.5}
-.bar{height:10px;background:#eee;border-radius:5px;overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;background:var(--o);width:0;transition:width .3s}
-.ok{color:#2a8a2a;font-weight:bold}.ng{color:#c00;font-weight:bold}
+.bar{height:10px;background:#eee;border-radius:5px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:var(--o);width:0;transition:width .3s}
+.okc{color:#2a8a2a;font-weight:bold}.ngc{color:#c00;font-weight:bold}
 #qr{display:flex;justify-content:center;margin:12px 0}
-#qr img,#qr canvas{width:220px;height:220px}
-video{width:100%;border-radius:10px;background:#000}
+#qr img,#qr canvas{width:240px;height:240px}
+.shop #qr img,.shop #qr canvas{width:300px;height:300px}
 .hide{display:none}
 .row{display:flex;gap:8px}.row>div{flex:1}
+.tag{display:inline-block;font-size:12px;background:#5b4636;color:#fff;border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 </style></head><body>
 <button class="lang" id="lang">English</button>
-<h1 data-t="title"></h1>
-<p class="lead" data-t="lead"></p>
+<h1><span data-t="title"></span><span class="tag hide" id="shoptag">店</span></h1>
+<p class="lead cust" data-t="lead"></p>
 
 <div id="form">
 <div class="card">
@@ -36,27 +37,25 @@ video{width:100%;border-radius:10px;background:#000}
   <input id="file" type="file" accept="video/*" style="display:none">
   <button class="btn sub" id="pick" data-t="pick"></button>
   <div id="fname" class="small" style="margin-top:6px"></div>
+  <div class="bar hide" id="ubarw"><i id="ubar"></i></div>
 </div>
 <div class="card">
   <div class="row">
     <div><label class="t" data-t="cups_l"></label><input id="cups" type="number" inputmode="numeric" min="0" max="2000" placeholder="63"></div>
-    <div><label class="t" data-t="min_l"></label><input id="minutes" type="number" inputmode="numeric" min="1" max="120" value="40"></div>
+    <div class="cust"><label class="t" data-t="min_l"></label><input id="minutes" type="number" inputmode="numeric" min="1" max="120" value="40"></div>
   </div>
 </div>
 <div class="card">
   <label class="t" data-t="sns_l"></label>
-  <label class="opt" id="o_ok"><input type="radio" name="sns" value="ok"><span data-t="sns_ok"></span></label>
-  <label class="opt" id="o_ng"><input type="radio" name="sns" value="ng"><span data-t="sns_ng"></span></label>
+  <div class="cust">
+    <p class="small" data-t="sns_ok_d"></p>
+    <p class="small" data-t="sns_ng_d"></p>
+  </div>
+  <button class="btn" id="send_ok" data-t="send_ok"></button>
+  <button class="btn ng" id="send_ng" data-t="send_ng"></button>
   <p class="small" data-t="sns_note"></p>
 </div>
-<button class="btn" id="send" disabled data-t="send"></button>
-<p id="err" class="ng"></p>
-</div>
-
-<div id="prog" class="card hide">
-  <div id="p_msg" style="font-weight:bold"></div>
-  <div class="bar"><i id="p_bar"></i></div>
-  <p class="small" data-t="keep_open"></p>
+<p id="err" class="ngc"></p>
 </div>
 
 <div id="wait" class="card hide">
@@ -64,46 +63,51 @@ video{width:100%;border-radius:10px;background:#000}
   <div class="bar"><i id="w_bar"></i></div>
   <p class="small" data-t="qr_l"></p>
   <div id="qr"></div>
-  <p class="small" style="word-break:break-all;text-align:center"><a id="vlink" target="_blank"></a></p>
+  <div id="w_btn"></div>
   <button class="btn sub" id="again" data-t="again"></button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 const T={
- ja:{title:'🎬 挑戦動画を作る',lead:'タイムラプスで撮った挑戦の動画を送ると、数分でお店の記念動画にしてお返しします。',
+ ja:{title:'🎬 挑戦動画',lead:'タイムラプスで撮った挑戦の動画を送ると、数分でお店の記念動画にしてお返しします。',
   pick_l:'① 撮った動画（タイムラプス）',pick:'動画を選ぶ',cups_l:'② 杯数',min_l:'挑戦した時間（分）',
-  sns_l:'③ お店のSNSでの使用',sns_ok:'<b>SNSで使ってOK</b><br><span class="small">お店のSNS（Instagramなど）で紹介させていただきます。動画は<b>7日間</b>見られます。</span>',
-  sns_ng:'<b>SNSには使わないで</b><br><span class="small">お店のSNSには使いません。動画は<b>翌日まで</b>見られます。</span>',
+  sns_l:'③ お店のSNSで使ってよいですか？',
+  sns_ok_d:'<b>OK</b>：お店のSNS（Instagramなど）で紹介させていただきます。動画は<b>7日間</b>見られます。',
+  sns_ng_d:'<b>NG</b>：お店のSNSには使いません。動画は<b>翌日まで</b>見られます。',
+  send_ok:'SNS OK で送る',send_ng:'SNS NG で送る',
   sns_note:'どちらも無料です。SNSでの使用は、あとから取りやめられます（お店のInstagram @kurukuruwnk にDMをください）。お子さまが写る場合は、保護者の方が選んでください。',
-  send:'送る',keep_open:'送り終わるまで、この画面を閉じないでください。',up:'送っています…',
-  made:'仕上げています…（2〜3分）',ready:'できました！',qr_l:'お客様のスマホでこのQRコードを読むと、動画を受け取れます。この画面のままでも、できたら下のボタンから見られます。',
-  again:'次の動画を送る',open:'動画を見る・保存する',e_file:'動画を選んでください',e_cups:'杯数を入れてください',e_sns:'SNSのOK/NGを選んでください',e_net:'送れませんでした。電波の良い所で、もう一度送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
- en:{title:'🎬 Your Challenge Video',lead:'Send the time-lapse video of your challenge, and we will turn it into a souvenir video in a few minutes.',
+  upping:'送っています…',upped:'動画は送れました',
+  made:'仕上げています…（2〜3分）',ready:'できました！',qr_l:'このQRコードを読むと、動画を受け取れます。',
+  again:'次の動画を送る',open:'動画を見る・保存する',e_file:'動画を選んでください',e_cups:'杯数を入れてください',
+  e_net:'送れませんでした。電波の良い所で、もう一度「動画を選ぶ」から送ってください。',e_big:'動画が大きすぎます（300MBまで）。カメラの「タイムラプス」で撮った動画を選んでください。',err_made:'うまく仕上がりませんでした。スタッフにお知らせください。'},
+ en:{title:'🎬 Challenge Video',lead:'Send the time-lapse video of your challenge, and we will turn it into a souvenir video in a few minutes.',
   pick_l:'① Your time-lapse video',pick:'Choose video',cups_l:'② Bowls',min_l:'Minutes',
-  sns_l:'③ May we post it on our social media?',sns_ok:'<b>Yes, you may post it</b><br><span class="small">We may share it on our social media (Instagram, etc.). Your video is available for <b>7 days</b>.</span>',
-  sns_ng:'<b>No, please don\'t post it</b><br><span class="small">We will not post it. Your video is available <b>until the end of tomorrow</b>.</span>',
+  sns_l:'③ May we post it on our social media?',
+  sns_ok_d:'<b>Yes</b>: we may share it on our social media (Instagram, etc.). Your video is available for <b>7 days</b>.',
+  sns_ng_d:'<b>No</b>: we will not post it. Your video is available <b>until the end of tomorrow</b>.',
+  send_ok:'Yes, send',send_ng:'No, send (don\'t post)',
   sns_note:'Both are free. You can withdraw permission anytime (DM us on Instagram @kurukuruwnk). If a child appears in the video, a parent or guardian should choose.',
-  send:'Send',keep_open:'Please keep this page open until sending is finished.',up:'Sending…',
-  made:'Making your video… (2–3 min)',ready:'Ready!',qr_l:'Scan this QR code with your phone to get the video. You can also wait here and tap the button when it is ready.',
-  again:'Send another video',open:'Watch & save the video',e_file:'Please choose a video',e_cups:'Please enter the number of bowls',e_sns:'Please choose Yes or No for social media',e_net:'Could not send. Please try again where the signal is good.',e_big:'This video is too large (max 300MB). Please choose a video taken in Time-lapse mode.',err_made:'Something went wrong. Please tell our staff.'}
+  upping:'Sending…',upped:'Video sent',
+  made:'Making your video… (2–3 min)',ready:'Ready!',qr_l:'Scan this QR code to get your video.',
+  again:'Send another video',open:'Watch & save the video',e_file:'Please choose a video',e_cups:'Please enter the number of bowls',
+  e_net:'Could not send. Please choose the video again where the signal is good.',e_big:'This video is too large (max 300MB). Please choose a video taken in Time-lapse mode.',err_made:'Something went wrong. Please tell our staff.'}
 };
 const API='https://script.google.com/macros/s/AKfycbyQJEuY3oQ2UxEJKqzsF9oEIwB4opo9V1CQkZiPvlbjYgiycU8NaqRQ1JSFghf_JWCs7A/exec';
 const $=id=>document.getElementById(id);
-let L=(navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en';
-try{const s=localStorage.getItem('cv_lang'); if(s) L=s;}catch(e){}
+const P=new URLSearchParams(location.search);
+// 店のスマホ：?shop=1 で開くと覚える（ホーム画面のアイコンからも店の形で開く）。?shop=0 で戻す
+let SHOP=false;
+try{ if(P.get('shop')==='1') localStorage.setItem('cv_shop','1'); if(P.get('shop')==='0') localStorage.removeItem('cv_shop'); SHOP=localStorage.getItem('cv_shop')==='1'; }catch(e){ SHOP=P.get('shop')==='1'; }
+let L=SHOP?'ja':((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en');
+try{const s=localStorage.getItem('cv_lang'); if(s&&!SHOP) L=s;}catch(e){}
+if(SHOP){document.body.classList.add('shop');$('shoptag').classList.remove('hide');document.querySelectorAll('.cust').forEach(e=>e.classList.add('hide'));}
 function paint(){document.documentElement.lang=L;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[L][e.dataset.t]);$('lang').textContent=L==='ja'?'English':'日本語';}
-$('lang').onclick=()=>{L=L==='ja'?'en':'ja';try{localStorage.setItem('cv_lang',L)}catch(e){};paint();};
+$('lang').onclick=()=>{L=L==='ja'?'en':'ja';try{if(!SHOP)localStorage.setItem('cv_lang',L)}catch(e){};paint();};
 paint();
-let file=null;
-$('pick').onclick=()=>$('file').click();
-$('file').onchange=e=>{file=e.target.files[0]||null;$('fname').textContent=file?`${file.name}（${(file.size/1048576).toFixed(1)}MB）`:'';check();};
-document.querySelectorAll('input[name=sns]').forEach(r=>r.onchange=()=>{$('o_ok').classList.toggle('on',r.value==='ok'&&r.checked);$('o_ng').classList.toggle('on',r.value==='ng'&&r.checked);check();});
-$('cups').oninput=check;
-function sns(){const r=document.querySelector('input[name=sns]:checked');return r?r.value:'';}
-function check(){$('send').disabled=!(file&&$('cups').value!==''&&sns());}
+
 async function api(q){const r=await fetch(API,{method:'POST',body:JSON.stringify(q)});const j=await r.json();if(!j.ok)throw new Error(j.error||'NG');return j;}
-async function up(url,f){
+async function up(url,f,onp){
   const CH=8*1024*1024;let pos=0;
   while(pos<f.size){
     const end=Math.min(pos+CH,f.size);let r,tries=0;
@@ -111,40 +115,59 @@ async function up(url,f){
       catch(e){if(++tries>3)throw e;await new Promise(z=>setTimeout(z,2000*tries));}}
     if(r.status===308){const g=r.headers.get('Range');pos=g?parseInt(g.split('-')[1])+1:end;}
     else if(r.ok){pos=f.size;}else throw new Error('upload '+r.status);
-    $('p_bar').style.width=(pos/f.size*100)+'%';
+    onp(pos/f.size);
   }
 }
-$('send').onclick=async()=>{
-  $('err').textContent='';
-  if(!file)return $('err').textContent=T[L].e_file;
-  if(file.size>300*1024*1024)return $('err').textContent=T[L].e_big;
-  const cups=parseInt($('cups').value,10);
-  if(!(cups>=0))return $('err').textContent=T[L].e_cups;
-  if(!sns())return $('err').textContent=T[L].e_sns;
-  $('form').classList.add('hide');$('prog').classList.remove('hide');$('p_msg').textContent=T[L].up;
-  let tok;
-  try{
-    const s=await api({action:'c_start',pin:'1107',cups,minutes:parseInt($('minutes').value,10)||40,sns:sns(),size:file.size,name:file.name,mime:file.type||'video/quicktime',lang:L});
-    tok=s.token;await up(s.url,file);
-    let ok=false;for(let i=0;i<5&&!ok;i++){try{await api({action:'c_uploaded',token:tok});ok=true;}catch(e){await new Promise(z=>setTimeout(z,3000));}}
-    if(!ok)throw new Error('uploaded');
-  }catch(e){$('prog').classList.add('hide');$('form').classList.remove('hide');$('err').textContent=T[L].e_net;return;}
-  $('prog').classList.add('hide');$('wait').classList.remove('hide');
-  const vurl=location.href.replace(/[^/]*(\?.*)?$/,'')+'v.html?t='+tok+'&l='+L;
-  $('vlink').href=vurl;$('vlink').textContent=vurl;$('qr').innerHTML='';
-  new QRCode($('qr'),{text:vurl,width:440,height:440,correctLevel:QRCode.CorrectLevel.M});
-  watch(tok,vurl);
+// 動画を選んだ瞬間に送り始める（杯数・SNSを入れている間に送り終わる）
+let cur=null; // {token, done:Promise, ok:bool}
+$('pick').onclick=()=>$('file').click();
+$('file').onchange=e=>{
+  const f=e.target.files[0]; $('err').textContent='';
+  if(!f)return;
+  $('fname').textContent=`${f.name}（${(f.size/1048576).toFixed(1)}MB）`;
+  if(f.size>300*1024*1024){cur=null;$('err').textContent=T[L].e_big;return;}
+  $('ubarw').classList.remove('hide');$('ubar').style.width='0';
+  const job={token:null,ok:false};
+  job.done=(async()=>{
+    const s=await api({action:'c_start',pin:'1107',later:true,size:f.size,name:f.name,mime:f.type||'video/quicktime',lang:L});
+    job.token=s.token;
+    await up(s.url,f,p=>{$('ubar').style.width=(p*100)+'%';});
+    job.ok=true;$('fname').innerHTML=`<span class="okc">✓ ${T[L].upped}</span>`;
+  })().catch(err=>{job.err=err;if(cur===job){$('err').textContent=T[L].e_net;}});
+  cur=job;
 };
+async function submit(sns){
+  $('err').textContent='';
+  if(!cur)return $('err').textContent=T[L].e_file;
+  const cups=$('cups').value;
+  if(cups===''||!(parseInt(cups,10)>=0))return $('err').textContent=T[L].e_cups;
+  const job=cur;
+  $('send_ok').disabled=$('send_ng').disabled=true;
+  $('send_'+sns).textContent=T[L].upping;
+  try{
+    await job.done; if(!job.ok)throw job.err||new Error('upload');
+    await api({action:'c_set',token:job.token,cups:parseInt(cups,10),sns,minutes:SHOP?40:(parseInt($('minutes').value,10)||40)});
+    let ok=false;for(let i=0;i<5&&!ok;i++){try{await api({action:'c_uploaded',token:job.token});ok=true;}catch(e){await new Promise(z=>setTimeout(z,3000));}}
+    if(!ok)throw new Error('uploaded');
+  }catch(e){$('err').textContent=T[L].e_net;$('send_ok').disabled=$('send_ng').disabled=false;paint();return;}
+  $('form').classList.add('hide');$('wait').classList.remove('hide');window.scrollTo(0,0);
+  const vurl=location.href.replace(/[^/]*(\?.*)?$/,'')+'v.html?t='+job.token;
+  $('qr').innerHTML='';
+  new QRCode($('qr'),{text:vurl,width:480,height:480,correctLevel:QRCode.CorrectLevel.M});
+  watch(job.token,vurl);
+}
+$('send_ok').onclick=()=>submit('ok');
+$('send_ng').onclick=()=>submit('ng');
 async function watch(tok,vurl){
   const t0=Date.now();
   while(true){
     let s;try{s=await api({action:'c_status',token:tok});}catch(e){s={status:'?'};}
-    if(s.status==='done'){$('w_msg').innerHTML=`<span class="ok">${T[L].ready}</span>`;$('w_bar').style.width='100%';
-      const b=document.createElement('a');b.className='btn';b.href=vurl;b.textContent=T[L].open;$('w_msg').after(b);return;}
-    if(s.status==='error'){$('w_msg').innerHTML=`<span class="ng">${T[L].err_made}</span>`;return;}
+    if(s.status==='done'){$('w_msg').innerHTML=`<span class="okc">${T[L].ready}</span>`;$('w_bar').style.width='100%';
+      $('w_btn').innerHTML=`<a class="btn" href="${vurl}">${T[L].open}</a>`;return;}
+    if(s.status==='error'){$('w_msg').innerHTML=`<span class="ngc">${T[L].err_made}</span>`;return;}
     $('w_msg').textContent=T[L].made;$('w_bar').style.width=Math.min(95,(Date.now()-t0)/1500)+'%';
     await new Promise(z=>setTimeout(z,5000));
   }
 }
-$('again').onclick=()=>location.reload();
+$('again').onclick=()=>location.href=location.pathname;
 </script></body></html>

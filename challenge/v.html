@@ -37,11 +37,11 @@ video{width:100%;border-radius:10px;background:#000;display:block}
 const T={
  ja:{title:'🎬 挑戦動画',wait:'仕上げています…（1〜2分）。この画面のままお待ちください。',load:'動画を読み込んでいます…',bowls:c=>c.length?c.join(' / ')+'杯':'ナイスチャレンジ',
   save:'動画を保存する',howto:'iPhoneは「保存する」→「ビデオを保存」で写真に入ります。',until:d=>d+' まで見られます。お早めに保存してください。',
-  gone:'この動画の見られる期間は終わりました。',expired:'この動画の見られる期間は終わりました。',error:'うまく仕上がりませんでした。スタッフにお知らせください。',
+  gone:'この動画の見られる期間は終わりました。',expired:'この動画の見られる期間は終わりました。',error:'うまく仕上がりませんでした。スタッフにお知らせください。',off:'くるくるわんこで撮った動画・写真ではないようです。お店で撮った動画・写真を送り直してください。分からない時はスタッフへ。',
   net:'つながりませんでした。電波の良い所で、もう一度開いてください。',follow:'挑戦ありがとうございました。お店のInstagramもぜひフォローしてください。'},
  en:{title:'🎬 Your Challenge Video',wait:'Making your video… (1–2 min). Please keep this page open.',load:'Loading your video…',bowls:c=>c.length?c.join(' / ')+' bowls':'Nice challenge',
   save:'Save the video',howto:'On iPhone: tap "Save the video" → "Save Video" to add it to Photos.',until:d=>'Available until '+d+'. Please save it soon.',
-  gone:'This video is no longer available.',expired:'This video is no longer available.',error:'Something went wrong. Please tell our staff.',
+  gone:'This video is no longer available.',expired:'This video is no longer available.',error:'Something went wrong. Please tell our staff.',off:'This does not look like a video or photo taken at Kurukuru Wanko. Please send one taken in our shop. Ask our staff if you need help.',
   net:'Could not connect. Please open this page again where the signal is good.',follow:'Thank you for taking the challenge! Follow us on Instagram.'}
 };
 const API='https://script.google.com/macros/s/AKfycbyQJEuY3oQ2UxEJKqzsF9oEIwB4opo9V1CQkZiPvlbjYgiycU8NaqRQ1JSFghf_JWCs7A/exec';
@@ -64,7 +64,7 @@ async function run(){
   while(true){
     let s;try{s=await api({action:'c_status',token:tok});}catch(e){$('msg').textContent=T[L].net;await new Promise(z=>setTimeout(z,3000));continue;}
     if(s.status==='gone'||s.status==='expired'){$('msg').textContent=T[L][s.status];$('barw').classList.add('hide');return;}
-    if(s.status==='error'){$('msg').textContent=T[L].error;$('barw').classList.add('hide');return;}
+    if(s.status==='error'){$('msg').textContent=s.off?T[L].off:T[L].error;$('barw').classList.add('hide');return;}
     if(s.status==='done'){last=s;break;}
     $('msg').textContent=T[L].wait;$('bar').style.width=Math.min(95,(Date.now()-t0)/1500)+'%';
     await new Promise(z=>setTimeout(z,3000));

@@ -111,6 +111,7 @@ let SHOP=false;
 try{ if(P.get('shop')==='1') localStorage.setItem('cv_shop','1'); if(P.get('shop')==='0') localStorage.removeItem('cv_shop'); SHOP=localStorage.getItem('cv_shop')==='1'; }catch(e){ SHOP=P.get('shop')==='1'; }
 let L=SHOP?'ja':((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en');
 try{const s=localStorage.getItem('cv_lang'); if(s&&!SHOP) L=s;}catch(e){}
+if(!SHOP){location.replace('./'+location.search);}  // 写真で作るのは店のiPhoneだけ（11/18）
 if(SHOP){document.body.classList.add('shop');$('shoptag').classList.remove('hide');document.querySelectorAll('.cust').forEach(e=>e.classList.add('hide'));}
 function paint(){document.documentElement.lang=L;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[L][e.dataset.t]);$('lang').textContent=L==='ja'?'English':'日本語';}
 $('lang').onclick=()=>{L=L==='ja'?'en':'ja';try{if(!SHOP)localStorage.setItem('cv_lang',L)}catch(e){};paint();drawCups();};
@@ -164,7 +165,7 @@ $('file').onchange=e=>{
   $('ubarw').classList.remove('hide');$('ubar').style.width='0';
   const job={token:null,ok:false};
   job.done=(async()=>{
-    const s=await api({action:'c_pstart',pin:'1107',count:fs.length,lang:L});
+    const s=await api({action:'c_pstart',pin:'1107',count:fs.length,lang:L,shop:true});
     job.token=s.token;
     let sent=0;const totalUp=fs.reduce((a,f)=>a+(f.type.startsWith('video/')?f.size:Math.min(f.size,1500000)),0);
     for(let i=0;i<fs.length;i++){

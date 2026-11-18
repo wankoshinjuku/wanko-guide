@@ -43,7 +43,7 @@ input[type=number]{width:100%;font-size:26px;padding:10px;border:1px solid #ccc;
   <button class="btn sub" id="pick" data-t="pick"></button>
   <div id="fname" class="small" style="margin-top:6px"></div>
   <div class="bar hide" id="ubarw"><i id="ubar"></i></div>
-  <a class="swap" href="photo.html" data-t="swap"></a>
+  <a class="swap hide" id="toPhoto" href="photo.html" data-t="swap"></a>
 </div>
 <div class="card">
   <label class="t" data-t="cups_l"></label>
@@ -108,7 +108,7 @@ let SHOP=false;
 try{ if(P.get('shop')==='1') localStorage.setItem('cv_shop','1'); if(P.get('shop')==='0') localStorage.removeItem('cv_shop'); SHOP=localStorage.getItem('cv_shop')==='1'; }catch(e){ SHOP=P.get('shop')==='1'; }
 let L=SHOP?'ja':((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en');
 try{const s=localStorage.getItem('cv_lang'); if(s&&!SHOP) L=s;}catch(e){}
-if(SHOP){document.body.classList.add('shop');$('shoptag').classList.remove('hide');document.querySelectorAll('.cust').forEach(e=>e.classList.add('hide'));}
+if(SHOP){document.body.classList.add('shop');$('shoptag').classList.remove('hide');document.querySelectorAll('.cust').forEach(e=>e.classList.add('hide'));$('toPhoto').classList.remove('hide');}  // 写真で作るのは店のiPhoneだけ（11/18）
 function paint(){document.documentElement.lang=L;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[L][e.dataset.t]);$('lang').textContent=L==='ja'?'English':'日本語';}
 $('lang').onclick=()=>{L=L==='ja'?'en':'ja';try{if(!SHOP)localStorage.setItem('cv_lang',L)}catch(e){};paint();drawCups();};
 paint();

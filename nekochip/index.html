@@ -97,8 +97,8 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
     </div>
 
     <div id="regnote" class="card" hidden>
-      <p style="font-weight:900;font-size:17px">チップへの交換は、NEKOKAJI 秋葉原の店内にあるQRコードから行います。</p>
-      <p class="note">お店で、店内のQRコードをスマホのカメラで読み込んでください。</p>
+      <p style="font-weight:900;font-size:17px">チップへの交換は、くるくるわんこのマイページから行います。</p>
+      <p class="note">マイページの「系列店の紹介」から開いてください。</p>
     </div>
 
     <div id="xsec" style="display:grid;gap:14px">
@@ -126,7 +126,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   <div id="v-confirm" class="card" hidden>
     <p class="note" id="c-name"></p>
     <p class="big" id="c-info"></p>
-    <p class="note">確定すると、替えられる杯数から減ります。</p>
+    <p class="note">確定は、NEKOKAJI 秋葉原のお店で押してください。確定すると替えられる杯数から減り、チップを受け取る画面が15分出ます。</p>
     <p class="err" id="c-err"></p>
     <button class="btn" id="ok" type="button">確定</button>
     <button class="btn ghost" id="back" type="button">やめる</button>
@@ -192,7 +192,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   }
 
   function start() {
-    if (!ev && !regCode) { msg('QRコードから開いてください', 'NEKOKAJI 秋葉原の店内にあるQRコードを、スマホのカメラで読み込んでください。'); return; }
+    if (!ev && !regCode) { msg('リンクから開いてください', 'くるくるわんこのマイページか、NEKOKAJI 秋葉原の公式LINEのリンクから開いてください。'); return; }
     if (!window.liff) { fail(); return; }
     liff.init({ liffId: LIFF_ID }).then(function () {
       if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
@@ -203,7 +203,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   function load() {
     post({ action: ev ? 'me' : 'reg' }).then(function (r) {
       if (!r.ok && r.error === 'auth') { try { liff.logout(); } catch (e) {} liff.login({ redirectUri: location.href }); return; }
-      if (!r.ok && r.error === 'qr') { msg('このQRコードは使えません', 'NEKOKAJI 秋葉原の店内にある、新しいQRコードを読み込んでください。'); return; }
+      if (!r.ok && r.error === 'qr') { msg('このリンクは使えません', 'くるくるわんこのマイページか、NEKOKAJI 秋葉原の公式LINEの、新しいリンクから開いてください。'); return; }
       if (!r.ok) { fail(); return; }
       if (!r.member) {
         msg('記録が見つかりません', 'くるくるわんこで食べた杯数を、くるくるわんこの公式LINEに記録すると、ここでチップに替えられます。', { text: 'くるくるわんこの公式LINE', href: WANKO_LINE });
@@ -270,7 +270,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
       if (r.ok && r.ticket) { me = Object.assign(me, r); ticket(r.ticket); return; }
       $('ok').disabled = false;
       if (r.error === 'over') { me.balance = r.balance; $('c-err').textContent = '替えられるのは' + r.balance + '杯までです。やめるを押して、杯数を直してください。'; return; }
-      if (r.error === 'qr') { $('c-err').textContent = '店内のQRコードを、もう一度読み込んでください。'; return; }
+      if (r.error === 'qr') { $('c-err').textContent = 'リンクから、もう一度開いてください。'; return; }
       $('c-err').textContent = 'うまく確定できませんでした。もう一度押してください。';
     }).catch(function () { $('ok').disabled = false; $('ok').textContent = '確定'; $('c-err').textContent = 'つながりませんでした。もう一度押してください。'; });
   }

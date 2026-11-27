@@ -78,7 +78,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--yellow);outline
     <h2>QRコードを読み込んだお客さん</h2>
     <div class="custs" id="custs"></div>
 
-    <h2>チップに替えた記録</h2>
+    <h2>チップをプレゼントした記録</h2>
     <ul class="rows" id="log"></ul>
 
     <ul class="rules">
@@ -117,12 +117,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--yellow);outline
     var r = data, cs = r.custs, rate = r.rate;
     var U = 0, N = 0; r.log.forEach(function (l) { if (!l.cancelled) { U += l.cups; N++; } });
     var T = cs.reduce(function (a, c) { return a + c.balance; }, 0);
-    $('sum').innerHTML = '<div><span>読み込んだ人</span><b>' + cs.length + '人</b></div><div><span>替えた回数</span><b>' + N + '回</b></div><div><span>替えた杯数</span><b>' + U + '杯</b></div><div><span>渡したチップ</span><b>$' + U * rate + '</b></div>';
+    $('sum').innerHTML = '<div><span>読み込んだ人</span><b>' + cs.length + '人</b></div><div><span>プレゼントした回数</span><b>' + N + '回</b></div><div><span>プレゼントした杯数</span><b>' + U + '杯</b></div><div><span>渡したチップ</span><b>$' + U * rate + '</b></div>';
     var q = $('q').value.trim().toLowerCase();
     var list = cs.filter(function (c) { return !q || c.name.toLowerCase().indexOf(q) >= 0; });
     $('custs').innerHTML = list.map(function (c) {
-      return '<div class="cust"><div class="name">' + esc(c.name || '（名前なし）') + ' さん</div><div class="nums"><span>くるくるわんこ<b>' + c.total + '杯</b></span><span>替えた<b>' + c.used + '杯</b></span><span>残り<b>' + c.balance + '杯</b></span></div>' +
-        '<div class="last' + (c.eligible ? '' : ' ng') + '">' + (!c.eligible ? '開始後の挑戦がないため、まだ使えません' : c.last ? '最後の交換 ' + dt(c.last) : 'まだ交換なし') + '</div></div>';
+      return '<div class="cust"><div class="name">' + esc(c.name || '（名前なし）') + ' さん</div><div class="nums"><span>くるくるわんこ<b>' + c.total + '杯</b></span><span>プレゼント済み<b>' + c.used + '杯</b></span><span>残り<b>' + c.balance + '杯</b></span></div>' +
+        '<div class="last' + (c.eligible ? '' : ' ng') + '">' + (!c.eligible ? '開始後の挑戦がないため、まだ使えません' : c.last ? '最後のプレゼント ' + dt(c.last) : 'まだプレゼントなし') + '</div></div>';
     }).join('') || '<div class="empty">' + (q ? '見つかりません' : 'まだいません') + '</div>';
     var logs = r.log.filter(function (l) { return !q || l.name.toLowerCase().indexOf(q) >= 0; });
     $('log').innerHTML = logs.map(function (l) {

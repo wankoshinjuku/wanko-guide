@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>わんこそばチップ交換｜NEKOKAJI × くるくるわんこ</title>
+<title>わんこそばチッププレゼント｜NEKOKAJI × くるくるわんこ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
@@ -91,29 +91,29 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   <div id="v-home" hidden style="display:grid;gap:14px">
     <p class="joined" id="joined" hidden>くるくるわんこの公式LINEの記録とつながりました。</p>
     <div class="balance">
-      <div class="lbl">チップに替えられる杯数</div>
+      <div class="lbl">チップをもらえる杯数</div>
       <div class="big" id="bal">0<small>杯</small></div>
       <div class="sub"><span>1杯 = $1</span><span id="total"></span></div>
     </div>
 
     <div id="regnote" class="card" hidden>
-      <p style="font-weight:900;font-size:17px">チップへの交換は、くるくるわんこのマイページから行います。</p>
+      <p style="font-weight:900;font-size:17px">チップのプレゼントは、くるくるわんこのマイページから受け取れます。</p>
       <p class="note">マイページの「系列店の紹介」から開いてください。</p>
     </div>
 
     <div id="xsec" style="display:grid;gap:14px">
-    <h2>チップに替える</h2>
+    <h2>食べた杯数分のチップをプレゼント</h2>
     <div class="stepper">
       <button type="button" id="minus" aria-label="1杯へらす">−</button>
-      <input id="cups" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="替える杯数">
+      <input id="cups" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="受け取る杯数">
       <button type="button" id="plus" aria-label="1杯ふやす">＋</button>
     </div>
     <div class="quick" id="quick"></div>
     <div class="conv">受け取るチップ<b id="conv">$0</b></div>
     <p class="err" id="err"></p>
-    <button class="btn" id="send" type="button">チップに交換</button>
+    <button class="btn" id="send" type="button">チップを受け取る</button>
     <ul class="rules">
-      <li>替えた分は「替えられる杯数」から減ります。くるくるわんこの記録とランキングは減りません。</li>
+      <li>受け取った分は「もらえる杯数」から減ります。くるくるわんこの記録とランキングは減りません。</li>
       <li>確定するまで、杯数は減りません。</li>
       <li>チップはゲーム用です。現金や景品には換えられません。</li>
     </ul>
@@ -127,14 +127,14 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   <div id="v-confirm" class="card" hidden>
     <p class="note" id="c-name"></p>
     <p class="big" id="c-info"></p>
-    <p class="note">確定は、NEKOKAJI 秋葉原のお店で押してください。確定すると替えられる杯数から減り、チップを受け取る画面が15分出ます。</p>
+    <p class="note">確定は、NEKOKAJI 秋葉原のお店で押してください。確定すると、もらえる杯数から減り、チップを受け取る画面が15分出ます。</p>
     <p class="err" id="c-err"></p>
     <button class="btn" id="ok" type="button">確定</button>
     <button class="btn ghost" id="back" type="button">やめる</button>
   </div>
 
   <div id="v-ticket" hidden>
-    <div class="ticket" role="group" aria-label="チップ引換の画面">
+    <div class="ticket" role="group" aria-label="チップを受け取る画面">
       <div class="band" aria-hidden="true"></div>
       <div class="body">
         <div class="kind">NEKOKAJI 秋葉原 ／ わんこそばチップ</div>
@@ -207,7 +207,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
       if (!r.ok && r.error === 'qr') { msg('このリンクは使えません', 'くるくるわんこのマイページか、NEKOKAJI 秋葉原の公式LINEの、新しいリンクから開いてください。'); return; }
       if (!r.ok) { fail(); return; }
       if (!r.member) {
-        msg('記録が見つかりません', 'くるくるわんこで食べた杯数を、くるくるわんこの公式LINEに記録すると、ここでチップに替えられます。', { text: 'くるくるわんこの公式LINE', href: WANKO_LINE });
+        msg('記録が見つかりません', 'くるくるわんこで食べた杯数を、くるくるわんこの公式LINEに記録すると、ここで、食べた杯数分のチップをプレゼントします。', { text: 'くるくるわんこの公式LINE', href: WANKO_LINE });
         return;
       }
       me = r; $('who').textContent = r.nick ? r.nick + ' さん' : '';
@@ -230,7 +230,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
     var list = me.records.map(function (r) {
       return { d: r.d, html: '<li><span>' + r.d + ' ' + (r.past ? '過去記録 <span class="tag">（登録）</span>' : 'くるくるわんこ') + '</span><span>' + r.cups + '杯</span></li>' };
     }).concat(me.exchanges.map(function (x) {
-      return { d: x.d, html: '<li><span>' + x.d + ' チップに交換 <span class="tag">（NEKOKAJI）</span></span><span class="minus">−' + x.cups + '杯</span></li>' };
+      return { d: x.d, html: '<li><span>' + x.d + ' チップのプレゼント <span class="tag">（NEKOKAJI）</span></span><span class="minus">−' + x.cups + '杯</span></li>' };
     })).sort(function (a, b) { return new Date(b.d) - new Date(a.d); });
     $('records').innerHTML = (showAll ? list : list.slice(0, 6)).map(function (x) { return x.html; }).join('') || '<li><span class="tag">まだありません</span></li>';
     $('more').hidden = showAll || list.length <= 6;
@@ -244,9 +244,9 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
   }
   function conv() {
     var v = parseInt($('cups').value, 10) || 0, b = me ? me.balance : 0, m = '';
-    if (b <= 0) m = '替えられる杯数がありません。くるくるわんこで食べると増えます。';
+    if (b <= 0) m = 'もらえる杯数がありません。くるくるわんこで食べると増えます。';
     else if (v < 1) m = '1杯以上を入れてください。';
-    else if (v > b) m = '替えられるのは' + b + '杯までです。';
+    else if (v > b) m = '受け取れるのは' + b + '杯までです。';
     $('err').textContent = m;
     $('conv').textContent = '$' + Math.max(0, v) * (me ? me.rate : 1);
     $('send').disabled = !!m;
@@ -270,7 +270,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
       $('ok').textContent = '確定';
       if (r.ok && r.ticket) { me = Object.assign(me, r); ticket(r.ticket); return; }
       $('ok').disabled = false;
-      if (r.error === 'over') { me.balance = r.balance; $('c-err').textContent = '替えられるのは' + r.balance + '杯までです。やめるを押して、杯数を直してください。'; return; }
+      if (r.error === 'over') { me.balance = r.balance; $('c-err').textContent = '受け取れるのは' + r.balance + '杯までです。やめるを押して、杯数を直してください。'; return; }
       if (r.error === 'qr') { $('c-err').textContent = 'リンクから、もう一度開いてください。'; return; }
       $('c-err').textContent = 'うまく確定できませんでした。もう一度押してください。';
     }).catch(function () { $('ok').disabled = false; $('ok').textContent = '確定'; $('c-err').textContent = 'つながりませんでした。もう一度押してください。'; });
@@ -281,7 +281,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
     $('t-cups').textContent = t.cups + '杯分';
     $('t-name').textContent = (me.nick || '') + ' さん';
     $('t-at').textContent = (at.getMonth() + 1) + '/' + at.getDate() + ' ' + hm(at);
-    $('t-left').textContent = '替えられる杯数 ' + me.balance + '杯';
+    $('t-left').textContent = 'もらえる杯数 ' + me.balance + '杯';
     show('ticket');
     clearTimeout(ticketTimer);
     ticketTimer = setTimeout(function () { home(); }, Math.max(0, TICKET_MIN * 60000 - (Date.now() - t.at)));
